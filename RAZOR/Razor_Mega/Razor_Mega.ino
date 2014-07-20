@@ -44,7 +44,9 @@ void setup()
     Serial.println("RTC failed");
   }
   
-  Serial.begin(115200);  // init the Serial port to print the data to PC
+  Serial.begin(115200);  // init the Serial port to print the data to PC connect
+                         // at 115200 so we can read the GPS fast enough and
+                         // echo without dropping chars and also spit it out;
   imuSerial.begin(57600); // init the Serial2 port to get data from the IMU
   GPS.begin(9600); //init the Serial3 port to read from the GPS
   GPS_setup();

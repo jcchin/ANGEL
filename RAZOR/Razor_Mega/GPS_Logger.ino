@@ -1,21 +1,15 @@
  
 void GPS_setup() { 
-  // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
-  // also spit it out
-  //Serial3.begin(115200);
+  
   Serial.println("\r\nUltimate GPSlogger Shield");
   pinMode(ledPin, OUTPUT);
 
-  // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-  // uncomment this line to turn on only the "minimum recommended" data
-  // GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // uncomment to turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  // GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY); // uncomment to turn on only the "minimum recommended" data
   // For logging data, we don't suggest using anything but either RMC only or RMC+GGA
   // to keep the log files at a reasonable size
-  // Set the update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);   // 1 or 5 Hz update rate
-  // Turn off updates on antenna status, if the firmware permits it
-  GPS.sendCommand(PGCMD_NOANTENNA);
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);   //// Set the update rate: 1 or 5 Hz
+  GPS.sendCommand(PGCMD_NOANTENNA);// Turn off updates on antenna status, if the firmware permits it
   
   #if ECHO_TO_SD
     // initialize the SD card
@@ -98,8 +92,6 @@ void GPS_loop() {
     if (strstr(stringptr, "RMC"))   logfile.flush();
     Serial.println();
   }
-}
-
 
 
 // read a Hex value and return the decimal equivalent
