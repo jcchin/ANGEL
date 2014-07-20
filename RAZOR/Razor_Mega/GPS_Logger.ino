@@ -32,15 +32,12 @@ void GPS_setup() {
       filename[4] = '0' + (i/10)%10;
       filename[5] = '0' + i%10;
       // create if does not exist, do not open existing, write, sync after write
-      if (! SD.exists(filename)) {
-        // only open a new file if it doesn't exist
+      if (! SD.exists(filename)) { // only open a new file if it doesn't exist
         logfile = SD.open(filename, FILE_WRITE); 
         break;
       }
     }
-  
-    logfile = SD.open(filename, FILE_WRITE);
-    if( ! logfile ) {
+    if(! logfile ) {
       Serial.print("Couldnt create "); Serial.println(filename);
       error(3);
     }
@@ -77,7 +74,8 @@ void GPS_loop() {
     
     //char *altptr;
     //sprintf(altptr, ", %f", GPS.altitude);
-    char *stringptr = GPS.lastNMEA();
+    char *lastNMEA = GPS.lastNMEA();
+    *stringptr = *lastNMEA;
     
     //char *totalLine = (char *)malloc(strlen(altptr) + strlen(stringptr) + 1);
     //if (totalLine != NULL)
@@ -86,13 +84,8 @@ void GPS_loop() {
     //   strcat(totalLine, stringptr);
     //}
     
-    uint8_t stringsize = strlen(stringptr);
-    if (stringsize != logfile.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
-      error(4);
-    if (strstr(stringptr, "RMC"))   logfile.flush();
-    Serial.println();
-  }
-
+  } //end GPS.newNMEAreceived()
+}
 
 // read a Hex value and return the decimal equivalent
 uint8_t parseHex(char c) {

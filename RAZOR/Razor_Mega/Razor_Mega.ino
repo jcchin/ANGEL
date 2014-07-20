@@ -10,7 +10,7 @@
 #include "RTClib.h" //RTC
 #define ECHO_TO_SD  1 // echo data to SDcard
 #define PRINT_ALT   0 //print alt (can't if using processing)
-#define GPSECHO  true //false = no echo to Serial, true = raw GPS sentences for debugging
+#define GPSECHO  false //false = no echo to Serial, true = raw GPS sentences for debugging
 #define LOG_FIXONLY false //false = always log, true = log only when GPS fix
 //GPS + Logging Stuff
 RTC_DS1307 RTC; // define the Real Time Clock object
@@ -19,6 +19,7 @@ File logfile;// the logging file
 #define ledPin 30 //pin for GPS LED (wired for 13 on GPS shield)
 HardwareSerial gpsSerial = Serial3;
 Adafruit_GPS GPS(&gpsSerial);
+char *stringptr; //holds GPS NMEA string
 //Altimeter Stuff
 #include "MPL3115A2.h" //Alt sensor libraries
 MPL3115A2 myPressure;//Create an instance of the alt sensor
@@ -53,6 +54,10 @@ void setup()
   altimeter_setup();
   delay(500); //give the IMU time to start-up
   Accel_setup();
+  logfile.println("Date (YYYY/MM/DD), Time (HH:MM:SS), " \
+  "yaw, pitch, roll, altitude, pressure, temperature, " \
+  "GPS Type, GMT, Active/Void, Latitude, LatDir, Longitude, " \
+  "LonDir, knots, tracking angle, Date (DDMMYY),,, checksum");
 }
 
 /************************************************************/
@@ -60,8 +65,8 @@ void setup()
 /************************************************************/
 void loop()
 {
+  GPS_loop();
   Accel_loop();
-  GPS_loop();   
 }
 
 

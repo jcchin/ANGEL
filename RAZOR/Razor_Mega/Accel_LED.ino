@@ -90,36 +90,41 @@ void Accel_loop(){
       altimeter_loop();
       
       #if ECHO_TO_SD
-      //SD logging
-      DateTime now;
-      now = RTC.now();
-      // log time
-      logfile.print(now.year(), DEC);
-      logfile.print("/");
-      logfile.print(now.month(), DEC);
-      logfile.print("/");
-      logfile.print(now.day(), DEC);
-      logfile.print(", ");
-      logfile.print(now.hour(), DEC);
-      logfile.print(":");
-      logfile.print(now.minute(), DEC);
-      logfile.print(":");
-      logfile.print(now.second(), DEC);
-      logfile.print(',');
-      logfile.print(yaw);
-      logfile.print(',');
-      logfile.print(pitch);
-      logfile.print(',');
-      logfile.print(roll);
-      logfile.print(',');
-      logfile.print(altitude);
-      logfile.print(',');
-      logfile.print(pressure);
-      logfile.print(',');
-      logfile.print(temperature);
-      logfile.print(',');
-      logfile.print('\n');
-      logfile.flush();
+        //SD logging
+        DateTime now;
+        now = RTC.now();
+        // log time
+        logfile.print(now.year(), DEC);
+        logfile.print("/");
+        logfile.print(now.month(), DEC);
+        logfile.print("/");
+        logfile.print(now.day(), DEC);
+        logfile.print(", ");
+        logfile.print(now.hour(), DEC);
+        logfile.print(":");
+        logfile.print(now.minute(), DEC);
+        logfile.print(":");
+        logfile.print(now.second(), DEC);
+        logfile.print(',');
+        logfile.print(yaw);
+        logfile.print(',');
+        logfile.print(pitch);
+        logfile.print(',');
+        logfile.print(roll);
+        logfile.print(',');
+        logfile.print(altitude);
+        logfile.print(',');
+        logfile.print(pressure);
+        logfile.print(',');
+        logfile.print(temperature);
+        logfile.print(',');
+        uint8_t stringsize = strlen(stringptr);
+        if (stringsize != logfile.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
+          error(4);
+        //if (strstr(stringptr, "RMC"))   logfile.flush();
+        //Serial.println();
+        logfile.print('\n');
+        logfile.flush();
       #endif
   }
 }
