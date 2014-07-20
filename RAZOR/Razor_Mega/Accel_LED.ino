@@ -94,6 +94,7 @@ void Accel_loop(){
         DateTime now;
         now = RTC.now();
         // log time
+        logfile.print(',');
         logfile.print(now.year(), DEC);
         logfile.print("/");
         logfile.print(now.month(), DEC);
@@ -117,11 +118,6 @@ void Accel_loop(){
         logfile.print(pressure);
         logfile.print(',');
         logfile.print(temperature);
-        logfile.print(',');
-        uint8_t stringsize = strlen(stringptr);
-        if (stringsize != logfile.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
-          error(4);
-        //if (strstr(stringptr, "RMC"))   logfile.flush();
         //Serial.println();
         logfile.print('\n');
         logfile.flush();

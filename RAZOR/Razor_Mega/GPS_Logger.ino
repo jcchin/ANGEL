@@ -11,6 +11,15 @@ void GPS_setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);   //// Set the update rate: 1 or 5 Hz
   GPS.sendCommand(PGCMD_NOANTENNA);// Turn off updates on antenna status, if the firmware permits it
   
+  // the nice thing about this code is you can have a timer0 interrupt go off
+  // every 1 millisecond, and read data from the GPS for you. that makes the
+  // loop code a heck of a lot easier!
+  useInterrupt(true);
+
+  delay(1000);
+  // Ask for firmware version
+  gpsSerial.println(PMTK_Q_RELEASE);
+  
   #if ECHO_TO_SD
     // initialize the SD card
     Serial.println("Initializing SD card...");
@@ -33,7 +42,7 @@ void GPS_setup() {
       filename[5] = '0' + i%10;
       // create if does not exist, do not open existing, write, sync after write
       if (! SD.exists(filename)) { // only open a new file if it doesn't exist
-        logfile = SD.open(filename, FILE_WRITE); 
+        logfile = SD.open(filename, O_CREAT | O_WRITE); 
         break;
       }
     }
@@ -48,10 +57,16 @@ void GPS_setup() {
 } //end GPS_setup()
 
 void GPS_loop() {
-  char c = GPS.read();
-  if (GPSECHO)//GPSECHO
-     if (c)   Serial.print(c);
-
+  // in case you are not using the interrupt above, you'll
+  // need to 'hand query' the GPS, not suggested :(
+  if (! usingInterrupt) {
+    // read data from the GPS in the 'main loop'
+    char c = GPS.read();
+    // if you want to debug, this is a good time to do it!
+    if (GPSECHO)
+      if (c) Serial.print(c);
+  }
+  
   // if a sentence is received, we can check the checksum, parse it...
   if (GPS.newNMEAreceived()) {
     // a tricky thing here is if we print the NMEA sentence, or data
@@ -61,7 +76,43 @@ void GPS_loop() {
         
     if (!GPS.parse(GPS.lastNMEA()))   // this also sets the newNMEAreceived() flag to false
       return;  // we can fail to parse a sentence in which case we should just wait for another
+  }
+  
+  // if millis() or timer wraps around, we'll just reset it
+  if (timer1 > millis())  timer1 = millis();
+
+  // approximately every 2 seconds or so, print out the current stats
+  if (millis() - timer1 > 400) { 
+    timer1 = millis(); // reset the timer
     
+    logfile.print("\nTime: ");
+    logfile.print(GPS.hour, DEC); logfile.print(':');
+    logfile.print(GPS.minute, DEC); logfile.print(':');
+    logfile.print(GPS.seconds, DEC); logfile.print('.');
+    logfile.print(GPS.milliseconds);
+    logfile.print(",");
+    logfile.print("Date: ");
+    logfile.print(GPS.day, DEC); logfile.print('/');
+    logfile.print(GPS.month, DEC); logfile.print("/20");
+    logfile.print(GPS.year, DEC);
+    logfile.print(",");
+    logfile.print("Fix: "); logfile.print((int)GPS.fix);
+    logfile.print(" quality: "); logfile.print((int)GPS.fixquality);
+    logfile.print(","); 
+    if (GPS.fix) {
+      logfile.print("Location: ");
+      logfile.print(GPS.latitude, 4); logfile.print(GPS.lat);
+      logfile.print(", "); 
+      logfile.print(GPS.longitude, 4); logfile.print(GPS.lon);
+      logfile.print(",");
+      logfile.print("Speed (knots): "); logfile.print(GPS.speed);
+      logfile.print(",");
+      logfile.print("Angle: "); logfile.print(GPS.angle);logfile.print(",");
+      logfile.print("Altitude: "); logfile.print(GPS.altitude);logfile.print(",");
+      logfile.print("Satellites: "); logfile.println((int)GPS.satellites);
+    }
+  }
+}/*
     // Sentence parsed! 
     Serial.println("OK");
     if (LOG_FIXONLY && !GPS.fix) {
@@ -74,8 +125,7 @@ void GPS_loop() {
     
     //char *altptr;
     //sprintf(altptr, ", %f", GPS.altitude);
-    char *lastNMEA = GPS.lastNMEA();
-    *stringptr = *lastNMEA;
+    char *stringptr = GPS.lastNMEA();
     
     //char *totalLine = (char *)malloc(strlen(altptr) + strlen(stringptr) + 1);
     //if (totalLine != NULL)
@@ -83,9 +133,14 @@ void GPS_loop() {
     //   strcpy(totalLine, altptr);
     //   strcat(totalLine, stringptr);
     //}
+
+    uint8_t stringsize = strlen(stringptr);
+    if (stringsize != logfile.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
+      error(4);
+    if (strstr(stringptr, "RMC"))   logfile.flush();
     
   } //end GPS.newNMEAreceived()
-}
+}*/
 
 // read a Hex value and return the decimal equivalent
 uint8_t parseHex(char c) {
@@ -124,3 +179,30 @@ void error(uint8_t errno) {
     }
   }
 }
+
+// Interrupt is called once a millisecond, looks for any new GPS data, and stores it
+SIGNAL(TIMER0_COMPA_vect) {
+  char c = GPS.read();
+  // if you want to debug, this is a good time to do it!
+#ifdef UDR0
+  if (GPSECHO)
+    if (c) UDR0 = c;  
+    // writing direct to UDR0 is much much faster than Serial.print 
+    // but only one character can be written at a time. 
+#endif
+}
+
+void useInterrupt(boolean v) {
+  if (v) {
+    // Timer0 is already used for millis() - we'll just interrupt somewhere
+    // in the middle and call the "Compare A" function above
+    OCR0A = 0xAF;
+    TIMSK0 |= _BV(OCIE0A);
+    usingInterrupt = true;
+  } else {
+    // do not call the interrupt function COMPA anymore
+    TIMSK0 &= ~_BV(OCIE0A);
+    usingInterrupt = false;
+  }
+}
+

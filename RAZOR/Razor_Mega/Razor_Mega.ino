@@ -10,7 +10,7 @@
 #include "RTClib.h" //RTC
 #define ECHO_TO_SD  1 // echo data to SDcard
 #define PRINT_ALT   0 //print alt (can't if using processing)
-#define GPSECHO  false //false = no echo to Serial, true = raw GPS sentences for debugging
+#define GPSECHO  true //false = no echo to Serial, true = raw GPS sentences for debugging
 #define LOG_FIXONLY false //false = always log, true = log only when GPS fix
 //GPS + Logging Stuff
 RTC_DS1307 RTC; // define the Real Time Clock object
@@ -34,7 +34,11 @@ const int NUMBER_OF_FIELDS = 3; // how many comma seperated fields we expect
 float rpy[NUMBER_OF_FIELDS];    // array holding values for all the fields
 float yaw, pitch, roll;
 boolean r1,r2,r3,r4,r5,r6;
-
+uint32_t timer1 = millis();
+// this keeps track of whether we're using the interrupt
+// off by default!
+boolean usingInterrupt = false;
+void useInterrupt(boolean); // Func prototype keeps Arduino 0023 happy
 /************************************************************/
 /*** Setup
 /************************************************************/
