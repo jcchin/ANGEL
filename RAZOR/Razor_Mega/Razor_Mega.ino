@@ -39,8 +39,8 @@ float rpy[NUMBER_OF_FIELDS];    // array holding values for all the fields
 // Set the pins used
 #define chipSelect 10
 #define ledPin 30
-
-Adafruit_GPS GPS(&Serial3);
+HardwareSerial mySerial = Serial3;
+Adafruit_GPS GPS(&mySerial);
 
 /************************************************************/
 /*** Setup
@@ -53,12 +53,12 @@ void setup()
   }
   
   Serial.begin(115200);  // init the Serial port to print the data to PC
-  //Serial2.begin(57600); // init the Serial2 port to get data from the IMU
-  //delay(500);
-  //initIMU();
+  Serial2.begin(57600); // init the Serial2 port to get data from the IMU
+  delay(500);
+  initIMU();
   GPS_setup();
-  //Accel_setup();
-  //altimeter_setup();
+  Accel_setup();
+  altimeter_setup();
 }
 
 /************************************************************/
@@ -66,7 +66,7 @@ void setup()
 /************************************************************/
 void loop()
 {
-  //Accel_loop();
+  Accel_loop();
   GPS_loop();   
   
 }

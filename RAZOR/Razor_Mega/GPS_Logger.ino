@@ -1,3 +1,4 @@
+ 
 void GPS_setup() { 
   // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
   // also spit it out
@@ -59,7 +60,7 @@ void GPS_setup() {
 
 void GPS_loop() {
   char c = GPS.read();
-  if (GPSECHO)
+  if (GPSECHO)//GPSECHO
      if (c)   Serial.print(c);
 
   // if a sentence is received, we can check the checksum, parse it...
@@ -82,21 +83,21 @@ void GPS_loop() {
     // Rad. lets log it!
     Serial.println("Log");
     
-    char *altptr;
-    sprintf(altptr, ", %f", GPS.altitude);
+    //char *altptr;
+    //sprintf(altptr, ", %f", GPS.altitude);
     char *stringptr = GPS.lastNMEA();
     
-    char *totalLine = (char *)malloc(strlen(altptr) + strlen(stringptr) + 1);
-    if (totalLine != NULL)
-    {
-       strcpy(totalLine, altptr);
-       strcat(totalLine, stringptr);
-    }
+    //char *totalLine = (char *)malloc(strlen(altptr) + strlen(stringptr) + 1);
+    //if (totalLine != NULL)
+    //{
+    //   strcpy(totalLine, altptr);
+    //   strcat(totalLine, stringptr);
+    //}
     
-    uint8_t stringsize = strlen(totalLine);
-    if (stringsize != logfile.write((uint8_t *)totalLine, stringsize))    //write the string to the SD file
+    uint8_t stringsize = strlen(stringptr);
+    if (stringsize != logfile.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
       error(4);
-    if (strstr(totalLine, "RMC"))   logfile.flush();
+    if (strstr(stringptr, "RMC"))   logfile.flush();
     Serial.println();
   }
 }
@@ -126,7 +127,7 @@ void error(uint8_t errno) {
   }
   */
   //Serial.print("error: ");
-  //Serial.println(errno);
+  Serial.println(errno);
   while(1) {
     uint8_t i;
     for (i=0; i<errno; i++) {
