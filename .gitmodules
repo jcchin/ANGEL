@@ -1,0 +1,3 @@
+[submodule "ANGEL.wiki"]
+	path = ANGEL.wiki
+	url = ../ANGEL.wiki.git
