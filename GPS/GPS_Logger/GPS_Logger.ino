@@ -22,9 +22,9 @@ Adafruit_GPS GPS(&mySerial);
 
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
-#define GPSECHO  true
+#define GPSECHO  false
 /* set to true to only log to SD when GPS has a fix, for debugging, keep it false */
-#define LOG_FIXONLY false  
+#define LOG_FIXONLY true  
 
 // Set the pins used
 #define chipSelect 10
@@ -84,8 +84,8 @@ void setup() {
   pinMode(10, OUTPUT);
   
   // see if the card is present and can be initialized:
-  if (!SD.begin(chipSelect, 11, 12, 13)) {
-  //if (!SD.begin(chipSelect)) {      // if you're using an UNO, you can use this line instead
+  //if (!SD.begin(chipSelect, 11, 12, 13)) {
+  if (!SD.begin(chipSelect)) {      // if you're using an UNO, you can use this line instead
     Serial.println("Card init. failed!");
     error(2);
   }
@@ -113,7 +113,7 @@ void setup() {
   // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   // uncomment this line to turn on only the "minimum recommended" data
-  //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+  // GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
   // For logging data, we don't suggest using anything but either RMC only or RMC+GGA
   // to keep the log files at a reasonable size
   // Set the update rate
@@ -150,11 +150,23 @@ void loop() {
     // Rad. lets log it!
     Serial.println("Log");
     
+    
+    
+    char *altptr;
+    sprintf(altptr, ", %f", GPS.altitude);
     char *stringptr = GPS.lastNMEA();
-    uint8_t stringsize = strlen(stringptr);
-    if (stringsize != logfile.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
+    
+    char *totalLine = (char *)malloc(strlen(altptr) + strlen(stringptr) + 1);
+    if (totalLine != NULL)
+    {
+       strcpy(totalLine, altptr);
+       strcat(totalLine, stringptr);
+    }
+    
+    uint8_t stringsize = strlen(totalLine);
+    if (stringsize != logfile.write((uint8_t *)totalLine, stringsize))    //write the string to the SD file
       error(4);
-    if (strstr(stringptr, "RMC"))   logfile.flush();
+    if (strstr(totalLine, "RMC"))   logfile.flush();
     Serial.println();
   }
 }
