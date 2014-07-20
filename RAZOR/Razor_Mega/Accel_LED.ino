@@ -1,5 +1,5 @@
 void Accel_setup() {
-  
+  initIMU();
   pinMode(22, OUTPUT); //blink LED
   pinMode(23, OUTPUT); //blink LED
   pinMode(24, OUTPUT); //blink LED
@@ -11,13 +11,9 @@ void Accel_setup() {
 
 void Accel_loop(){
   //forward all IMU to serial
-  int inByte = Serial2.read();
+  int inByte = imuSerial.read();
   Serial.write(inByte);
   
-  float yaw;
-  float pitch;
-  float roll;
-  boolean r1,r2,r3,r4,r5,r6;
   // print manager timer
   static unsigned long timer = 0;
   static unsigned long currentTime = 0;
@@ -31,7 +27,7 @@ void Accel_loop(){
     // Request one output frame from the IMU
     // #f only requests one reply, replies are still bound to the internal 20ms (50Hz) time raster.
     // So worst case delay that #f can add is 19.99ms.
-    Serial2.write("#f");
+    imuSerial.write("#f");
 
     /************************************************************/
     /*** Get the IMU values
@@ -39,13 +35,13 @@ void Accel_loop(){
     // the current field being received
     int fieldIndex = 0;            
     // search the Serial Buffer as long as the header character is found
-    boolean found_HeaderChar = Serial2.find("#YPR=");
+    boolean found_HeaderChar = imuSerial.find("#YPR=");
     if (found_HeaderChar)
     {
       // Get all 3 values (yaw, pitch, roll) from the Serial Buffer
       while(fieldIndex < NUMBER_OF_FIELDS)
       {
-        rpy[fieldIndex++] = Serial2.parseFloat();
+        rpy[fieldIndex++] = imuSerial.parseFloat();
       }
     }
 
@@ -91,19 +87,7 @@ void Accel_loop(){
       
       timer = millis();
        
-      float altitude = myPressure.readAltitudeFt();
-      float pressure = myPressure.readPressure();
-      float temperature = myPressure.readTempF();
-      
-      Serial.println();
-      #if PRINT_ALT
-      Serial.print(altitude, 2);
-      Serial.print(",");
-      Serial.print(pressure, 2);
-      Serial.print(",");
-      Serial.print(temperature, 2);
-      Serial.println();
-      #endif
+      altimeter_loop();
       
       #if ECHO_TO_SD
       //SD logging

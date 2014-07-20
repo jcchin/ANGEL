@@ -9,7 +9,20 @@ void altimeter_setup(){
   myPressure.enableEventFlags(); // Enable all three pressure and temp event flags
 }
 
-void altimeter_loop(){
+void altimeter_loop()
+{
+  altitude = myPressure.readAltitudeFt();
+  pressure = myPressure.readPressure();
+  temperature = myPressure.readTempF();
   
+  Serial.println();
+  #if PRINT_ALT
+  Serial.print(altitude, 2);
+  Serial.print(",");
+  Serial.print(pressure, 2);
+  Serial.print(",");
+  Serial.print(temperature, 2);
+  Serial.println();
+  #endif
   
 }

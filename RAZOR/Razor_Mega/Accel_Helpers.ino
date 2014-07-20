@@ -4,16 +4,17 @@
 void initIMU()
 {
   // Output angles in TEXT format & Turn off continuous streaming output & Disable error message output
-  Serial2.write("#ot#o0#oe0");
-  Serial2.flush();
+  imuSerial.write("#ot#o0#oe0");
+  imuSerial.flush();
 }
 
 /********************************/
 /*** Hard Coded Matrix Math Functions
 /********************************/
 
-void dot3(float R[][3], float a[3], float b[3]) //hardcoded dot product for [3x3].[3x1]=[3x1]
+void dot3(float R[][3], float a[3], float b[3])
 {
+  //hardcoded dot product for [3x3].[3x1]=[3x1]
   for (int c=0; c<3; c++)
   {
     float op = 0;
@@ -24,8 +25,9 @@ void dot3(float R[][3], float a[3], float b[3]) //hardcoded dot product for [3x3
   }
 }
 
-float dot1(float a[3], float b[3]) //hardcoded dot product for [1x3].[3x1]=[1x1]
+float dot1(float a[3], float b[3]) 
 {
+  //hardcoded dot product for [1x3].[3x1]=[1x1]
   float op = 0;
   for (int z=0; z<3; z++){
     op+=a[z]*b[z];
@@ -53,6 +55,7 @@ void R_b_to_i(float phi, float theta, float psi, float R[][3]){
 
 int pick(float R[][3])
 {
+  //define 6 unit directions, convert and dot all of them
   float a1[3] = {0, 0, 1};
   float a2[3] = {0, 1, 0};
   float a3[3] = {1, 0, 0};
@@ -84,8 +87,10 @@ float convert(float R[][3], float a[3])
   return acos(c)*180/PI;
 }
 
-int minI(float d1, float d2, float d3, float d4, float d5, float d6) //find the index of the minimum
+
+int minI(float d1, float d2, float d3, float d4, float d5, float d6) 
 {
+  //return the index of the minimum value
   float array[] = {d1, d2, d3, d4, d5, d6};
   int index = 0;
   float mini = array[0];

@@ -5,8 +5,6 @@ void GPS_setup() {
   //Serial3.begin(115200);
   Serial.println("\r\nUltimate GPSlogger Shield");
   pinMode(ledPin, OUTPUT);
-  // connect to the GPS at the desired rate
-  GPS.begin(9600);
 
   // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
@@ -15,7 +13,7 @@ void GPS_setup() {
   // For logging data, we don't suggest using anything but either RMC only or RMC+GGA
   // to keep the log files at a reasonable size
   // Set the update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 or 5 Hz update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);   // 1 or 5 Hz update rate
   // Turn off updates on antenna status, if the firmware permits it
   GPS.sendCommand(PGCMD_NOANTENNA);
   
