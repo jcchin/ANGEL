@@ -8,3 +8,8 @@ void altimeter_setup(){
   myPressure.setOversampleRate(7); // Set Oversample to the recommended 128
   myPressure.enableEventFlags(); // Enable all three pressure and temp event flags
 }
+
+void altimeter_loop(){
+  
+  
+}

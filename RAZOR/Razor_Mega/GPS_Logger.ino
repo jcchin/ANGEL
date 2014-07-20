@@ -1,15 +1,23 @@
-void GPS_setup() {
-  // for Leonardos, if you want to debug SD issues, uncomment this line
-  // to see serial output
-  //while (!Serial);
-  
+void GPS_setup() { 
   // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
   // also spit it out
-  Serial3.begin(115200);
+  //Serial3.begin(115200);
   Serial.println("\r\nUltimate GPSlogger Shield");
-
   pinMode(ledPin, OUTPUT);
+  // connect to the GPS at the desired rate
+  GPS.begin(9600);
 
+  // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  // uncomment this line to turn on only the "minimum recommended" data
+  // GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+  // For logging data, we don't suggest using anything but either RMC only or RMC+GGA
+  // to keep the log files at a reasonable size
+  // Set the update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 or 5 Hz update rate
+  // Turn off updates on antenna status, if the firmware permits it
+  GPS.sendCommand(PGCMD_NOANTENNA);
+  
   #if ECHO_TO_SD
     // initialize the SD card
     Serial.println("Initializing SD card...");
@@ -19,15 +27,17 @@ void GPS_setup() {
     
     // see if the card is present and can be initialized:
     if (!SD.begin(10, 11, 12, 13)) {
-      error("Card failed, or not present");
-      error(2);
+      Serial.println("Card failed, or not present");
+      uint8_t i = 2;
+      error(i);
     }
     
     char filename[15];
-    strcpy(filename, "GPSLOG00.CSV");
-    for (uint8_t i = 0; i < 100; i++) {
-      filename[6] = '0' + i/10;
-      filename[7] = '0' + i%10;
+    strcpy(filename, "GPS000.CSV");
+    for (uint16_t i = 0; i < 1000; i++) { //go up to GPS999.CSV
+      filename[3] = '0' + i/100;
+      filename[4] = '0' + (i/10)%10;
+      filename[5] = '0' + i%10;
       // create if does not exist, do not open existing, write, sync after write
       if (! SD.exists(filename)) {
         // only open a new file if it doesn't exist
@@ -43,23 +53,9 @@ void GPS_setup() {
     }
     Serial.print("Writing to "); Serial.println(filename);
   #endif  //ECHO_TO_SD 
-  // connect to the GPS at the desired rate
-  GPS.begin(9600);
-
-  // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-  // uncomment this line to turn on only the "minimum recommended" data
-  // GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
-  // For logging data, we don't suggest using anything but either RMC only or RMC+GGA
-  // to keep the log files at a reasonable size
-  // Set the update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);   // 1 or 5 Hz update rate
-
-  // Turn off updates on antenna status, if the firmware permits it
-  GPS.sendCommand(PGCMD_NOANTENNA);
-  
+    
   Serial.println("Ready!");
-}
+} //end GPS_setup()
 
 void GPS_loop() {
   char c = GPS.read();
@@ -98,10 +94,10 @@ void GPS_loop() {
     }
     
     uint8_t stringsize = strlen(totalLine);
-    //if (stringsize != logfile.write((uint8_t *)totalLine, stringsize))    //write the string to the SD file
-    //  error(4);
-    //if (strstr(totalLine, "RMC"))   logfile.flush();
-    //Serial.println();
+    if (stringsize != logfile.write((uint8_t *)totalLine, stringsize))    //write the string to the SD file
+      error(4);
+    if (strstr(totalLine, "RMC"))   logfile.flush();
+    Serial.println();
   }
 }
 
