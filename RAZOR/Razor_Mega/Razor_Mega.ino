@@ -8,7 +8,7 @@
 #include <SoftwareSerial.h> //not actually used, keeps Ada_GPS from barking
 #include <avr/sleep.h>
 #include "RTClib.h" //RTC
-#define ECHO_TO_SD  0 // echo data to SDcard
+#define ECHO_TO_SD  1 // echo data to SDcard
 #define PRINT_ALT   0 //print alt (can't if using processing)
 #define GPSECHO  false //false = no echo to Serial, true = raw GPS sentences for debugging
 #define LOG_FIXONLY false //false = always log, true = log only when GPS fix
@@ -30,9 +30,9 @@ float altitude, pressure, temperature;
 #define PERIOD      100 // [ms]
 /*** Vars for IMU ***/ 
 HardwareSerial imuSerial = Serial2;
-const int NUMBER_OF_FIELDS = 3; // how many comma seperated fields we expect                                           
+const int NUMBER_OF_FIELDS = 6; // how many comma seperated fields we expect                                           
 float rpy[NUMBER_OF_FIELDS];    // array holding values for all the fields
-float yaw, pitch, roll;
+float yaw, pitch, roll, rawX, rawY, rawZ;
 boolean r1,r2,r3,r4,r5,r6;
 uint32_t timer1 = millis();
 // this keeps track of whether we're using the interrupt
@@ -59,7 +59,7 @@ void setup()
   delay(500); //give the IMU time to start-up
   Accel_setup();
   logfile.println( \
-  "yaw, pitch, roll, altitude, pressure, temperature, " \
+  "yaw, pitch, roll, rawX (accel), rawY, rawZ, altitude, pressure, temperature, " \
   "Time (HH:MM:SS), Date (MM/DD/YY)," 
   "GPS Fix, Fix Quality, Latitude, Longitude, " \
   "knots, altitude, # of satellite fixes");

@@ -57,22 +57,34 @@ void Accel_loop(){
       // print IMU values
       for(fieldIndex=0; fieldIndex < NUMBER_OF_FIELDS; fieldIndex++)
       {
-        Serial.print(rpy[fieldIndex]);
-        Serial.print(",");
+        if (fieldIndex < 3){
+          Serial.print(rpy[fieldIndex]);
+          Serial.print(",");
+         }
         if (fieldIndex == 0){
           yaw = rpy[fieldIndex];
         }if  (fieldIndex == 1){
           pitch = rpy[fieldIndex];
         }if  (fieldIndex == 2){
           roll = rpy[fieldIndex];
+        }if  (fieldIndex == 3){
+          rawX = rpy[fieldIndex];
+        }if  (fieldIndex == 4){
+          rawY = rpy[fieldIndex];
+        }if  (fieldIndex == 5){
+          rawZ = rpy[fieldIndex];
         }
       }
       Serial.println();
-      //Convert body frame to inertial frame and find closest face
-      float R[3][3];
       int led;
-      R_b_to_i(yaw, pitch, roll, R);
-      led = pick(R);
+      
+      led = rawPick(rawX, rawY, rawZ);
+      
+      //Convert body frame to inertial frame and find closest face
+      //float R[3][3];
+      //R_b_to_i(yaw, pitch, roll, R);
+      //led = pick(R);
+      
       ////Serial.print(led);
       (led==0) ? digitalWrite(22, HIGH) : digitalWrite(22, LOW);
       (led==1) ? digitalWrite(23, HIGH) : digitalWrite(23, LOW);
@@ -101,6 +113,12 @@ void Accel_loop(){
         logfile.print(pitch);
         logfile.print(',');
         logfile.print(roll);
+        logfile.print(',');
+        logfile.print(rawX);
+        logfile.print(',');
+        logfile.print(rawY);
+        logfile.print(',');
+        logfile.print(rawZ);
         logfile.print(',');
         logfile.print(altitude);
         logfile.print(',');

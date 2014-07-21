@@ -102,3 +102,22 @@ int minI(float d1, float d2, float d3, float d4, float d5, float d6)
   }
   return index;
 }
+
+int rawPick(float rawX, float rawY, float rawZ){
+  float array[] = {rawX, rawY, rawZ};
+  int index = 0;
+  int flip = 0;
+  int trunc;
+  float maxi = abs(array[0]);
+  for (int z=1; z<=2; z++){
+    if (maxi < abs(array[z])){
+      maxi = abs(array[z]);
+      index = z;
+    }
+  }
+  trunc= array[index]; //truncate
+  if (trunc != abs(array[index])){
+    flip = 1;
+  } 
+  return (index*2) + flip;
+}
