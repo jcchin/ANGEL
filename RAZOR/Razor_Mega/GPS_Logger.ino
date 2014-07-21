@@ -81,37 +81,7 @@ void GPS_loop() {
   // if millis() or timer wraps around, we'll just reset it
   if (timer1 > millis())  timer1 = millis();
 
-  // approximately every 2 seconds or so, print out the current stats
-  if (millis() - timer1 > 400) { 
-    timer1 = millis(); // reset the timer
-    
-    logfile.print("\nTime: ");
-    logfile.print(GPS.hour, DEC); logfile.print(':');
-    logfile.print(GPS.minute, DEC); logfile.print(':');
-    logfile.print(GPS.seconds, DEC); logfile.print('.');
-    logfile.print(GPS.milliseconds);
-    logfile.print(",");
-    logfile.print("Date: ");
-    logfile.print(GPS.day, DEC); logfile.print('/');
-    logfile.print(GPS.month, DEC); logfile.print("/20");
-    logfile.print(GPS.year, DEC);
-    logfile.print(",");
-    logfile.print("Fix: "); logfile.print((int)GPS.fix);
-    logfile.print(" quality: "); logfile.print((int)GPS.fixquality);
-    logfile.print(","); 
-    if (GPS.fix) {
-      logfile.print("Location: ");
-      logfile.print(GPS.latitude, 4); logfile.print(GPS.lat);
-      logfile.print(", "); 
-      logfile.print(GPS.longitude, 4); logfile.print(GPS.lon);
-      logfile.print(",");
-      logfile.print("Speed (knots): "); logfile.print(GPS.speed);
-      logfile.print(",");
-      logfile.print("Angle: "); logfile.print(GPS.angle);logfile.print(",");
-      logfile.print("Altitude: "); logfile.print(GPS.altitude);logfile.print(",");
-      logfile.print("Satellites: "); logfile.println((int)GPS.satellites);
-    }
-  }
+  
 }/*
     // Sentence parsed! 
     Serial.println("OK");

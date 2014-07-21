@@ -86,27 +86,16 @@ void Accel_loop(){
       }
       
       timer = millis();
-       
-      altimeter_loop();
+      
+      if (altitude > -10 & pressure < 10000){ //stop reading if # are bogus
+        altimeter_loop();
+      }
       
       #if ECHO_TO_SD
         //SD logging
         DateTime now;
         now = RTC.now();
         // log time
-        logfile.print(',');
-        logfile.print(now.year(), DEC);
-        logfile.print("/");
-        logfile.print(now.month(), DEC);
-        logfile.print("/");
-        logfile.print(now.day(), DEC);
-        logfile.print(", ");
-        logfile.print(now.hour(), DEC);
-        logfile.print(":");
-        logfile.print(now.minute(), DEC);
-        logfile.print(":");
-        logfile.print(now.second(), DEC);
-        logfile.print(',');
         logfile.print(yaw);
         logfile.print(',');
         logfile.print(pitch);
@@ -119,7 +108,7 @@ void Accel_loop(){
         logfile.print(',');
         logfile.print(temperature);
         //Serial.println();
-        logfile.print('\n');
+        logfile.print(',');;
         logfile.flush();
       #endif
   }

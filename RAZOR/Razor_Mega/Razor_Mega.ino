@@ -27,7 +27,7 @@ float altitude, pressure, temperature;
 //Accel Stuff
 /*** Defines the frequency at which the data is requested ***/
 /*** frequency f=1/T, T=period; ie. 100ms --> f=10Hz, 200ms --> f=5Hz ***/
-#define PERIOD      200 // [ms]
+#define PERIOD      100 // [ms]
 /*** Vars for IMU ***/ 
 HardwareSerial imuSerial = Serial2;
 const int NUMBER_OF_FIELDS = 3; // how many comma seperated fields we expect                                           
@@ -58,10 +58,11 @@ void setup()
   altimeter_setup();
   delay(500); //give the IMU time to start-up
   Accel_setup();
-  logfile.println("Date (YYYY/MM/DD), Time (HH:MM:SS), " \
+  logfile.println( \
   "yaw, pitch, roll, altitude, pressure, temperature, " \
-  "GPS Type, GMT, Active/Void, Latitude, LatDir, Longitude, " \
-  "LonDir, knots, tracking angle, Date (DDMMYY),,, checksum");
+  "Time (HH:MM:SS), Date (MM/DD/YY)," 
+  "GPS Fix, Fix Quality, Latitude, Longitude, " \
+  "knots, altitude, # of satellite fixes");
 }
 
 /************************************************************/
@@ -71,6 +72,36 @@ void loop()
 {
   GPS_loop();
   Accel_loop();
+  // approximately every 0.5 second or so, print out the current stats
+  if (millis() - timer1 > 100) { 
+    timer1 = millis(); // reset the timer
+    
+    logfile.print(GPS.hour, DEC); logfile.print(':');
+    logfile.print(GPS.minute, DEC); logfile.print(':');
+    logfile.print(GPS.seconds, DEC); logfile.print('.');
+    logfile.print(GPS.milliseconds);
+    logfile.print(",");
+    logfile.print(GPS.month, DEC); logfile.print("/");
+    logfile.print(GPS.day, DEC); logfile.print('/');
+    logfile.print(GPS.year, DEC);
+    logfile.print(",");
+    logfile.print((int)GPS.fix);
+    logfile.print(",");
+    logfile.print((int)GPS.fixquality);
+    logfile.print(","); 
+    if (GPS.fix) {
+      logfile.print(GPS.latitude, 4); logfile.print(GPS.lat);
+      logfile.print(", "); 
+      logfile.print(GPS.longitude, 4); logfile.print(GPS.lon);
+      logfile.print(",");
+      logfile.print(GPS.speed);
+      logfile.print(",");
+      logfile.print(GPS.altitude);logfile.print(",");
+      logfile.println((int)GPS.satellites);
+    }else{
+      logfile.println(", , , ,"); 
+    }
+  }
 }
 
 
