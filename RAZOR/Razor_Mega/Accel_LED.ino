@@ -12,7 +12,7 @@ void Accel_setup() {
 void Accel_loop(){
   //forward all IMU to serial
   int inByte = imuSerial.read();
-  Serial.write(inByte);
+  //Serial.write(inByte);
   
   // print manager timer
   static unsigned long timer = 0;
@@ -53,12 +53,12 @@ void Accel_loop(){
     {
       // print Interval
       //Serial.print(currentTime - timer);
-      ////Serial.print(",");
+      Serial.print(",");
       // print IMU values
       for(fieldIndex=0; fieldIndex < NUMBER_OF_FIELDS; fieldIndex++)
       {
-        ////Serial.print(rpy[fieldIndex]);
-        ////Serial.print(",");
+        Serial.print(rpy[fieldIndex]);
+        Serial.print(",");
         if (fieldIndex == 0){
           yaw = rpy[fieldIndex];
         }if  (fieldIndex == 1){
@@ -67,7 +67,7 @@ void Accel_loop(){
           roll = rpy[fieldIndex];
         }
       }
-      ////Serial.print("");
+      Serial.println();
       //Convert body frame to inertial frame and find closest face
       float R[3][3];
       int led;
@@ -87,11 +87,11 @@ void Accel_loop(){
       
       timer = millis();
       
-      if (altitude > -10 & pressure < 10000){ //stop reading if # are bogus
-        altimeter_loop();
-      }
-      
       #if ECHO_TO_SD
+        if (altitude > -10 & pressure < 10000){ //stop reading if # are bogus
+          altimeter_loop();
+        }
+      
         //SD logging
         DateTime now;
         now = RTC.now();

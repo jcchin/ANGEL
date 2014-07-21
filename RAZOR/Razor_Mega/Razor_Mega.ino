@@ -8,9 +8,9 @@
 #include <SoftwareSerial.h> //not actually used, keeps Ada_GPS from barking
 #include <avr/sleep.h>
 #include "RTClib.h" //RTC
-#define ECHO_TO_SD  1 // echo data to SDcard
+#define ECHO_TO_SD  0 // echo data to SDcard
 #define PRINT_ALT   0 //print alt (can't if using processing)
-#define GPSECHO  true //false = no echo to Serial, true = raw GPS sentences for debugging
+#define GPSECHO  false //false = no echo to Serial, true = raw GPS sentences for debugging
 #define LOG_FIXONLY false //false = always log, true = log only when GPS fix
 //GPS + Logging Stuff
 RTC_DS1307 RTC; // define the Real Time Clock object
@@ -76,31 +76,33 @@ void loop()
   if (millis() - timer1 > 100) { 
     timer1 = millis(); // reset the timer
     
-    logfile.print(GPS.hour, DEC); logfile.print(':');
-    logfile.print(GPS.minute, DEC); logfile.print(':');
-    logfile.print(GPS.seconds, DEC); logfile.print('.');
-    logfile.print(GPS.milliseconds);
-    logfile.print(",");
-    logfile.print(GPS.month, DEC); logfile.print("/");
-    logfile.print(GPS.day, DEC); logfile.print('/');
-    logfile.print(GPS.year, DEC);
-    logfile.print(",");
-    logfile.print((int)GPS.fix);
-    logfile.print(",");
-    logfile.print((int)GPS.fixquality);
-    logfile.print(","); 
-    if (GPS.fix) {
-      logfile.print(GPS.latitude, 4); logfile.print(GPS.lat);
-      logfile.print(", "); 
-      logfile.print(GPS.longitude, 4); logfile.print(GPS.lon);
+    #if ECHO_TO_SD
+      logfile.print(GPS.hour, DEC); logfile.print(':');
+      logfile.print(GPS.minute, DEC); logfile.print(':');
+      logfile.print(GPS.seconds, DEC); logfile.print('.');
+      logfile.print(GPS.milliseconds);
       logfile.print(",");
-      logfile.print(GPS.speed);
+      logfile.print(GPS.month, DEC); logfile.print("/");
+      logfile.print(GPS.day, DEC); logfile.print('/');
+      logfile.print(GPS.year, DEC);
       logfile.print(",");
-      logfile.print(GPS.altitude);logfile.print(",");
-      logfile.println((int)GPS.satellites);
-    }else{
-      logfile.println(", , , ,"); 
-    }
+      logfile.print((int)GPS.fix);
+      logfile.print(",");
+      logfile.print((int)GPS.fixquality);
+      logfile.print(","); 
+      if (GPS.fix) {
+        logfile.print(GPS.latitude, 4); logfile.print(GPS.lat);
+        logfile.print(", "); 
+        logfile.print(GPS.longitude, 4); logfile.print(GPS.lon);
+        logfile.print(",");
+        logfile.print(GPS.speed);
+        logfile.print(",");
+        logfile.print(GPS.altitude);logfile.print(",");
+        logfile.println((int)GPS.satellites);
+      }else{
+        logfile.println(", , , ,"); 
+      }
+    #endif
   }
 }
 
