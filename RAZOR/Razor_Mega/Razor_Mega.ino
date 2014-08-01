@@ -35,6 +35,9 @@ float rpy[NUMBER_OF_FIELDS];    // array holding values for all the fields
 float yaw, pitch, roll, rawX, rawY, rawZ;
 boolean r1,r2,r3,r4,r5,r6;
 uint32_t timer1 = millis();
+//led pins
+int L0 = 24; int L1 = 28; int L2 = 32;
+int L3 = 36; int L4 = 40; int L5 = 44;
 // this keeps track of whether we're using the interrupt
 // off by default!
 boolean usingInterrupt = false;

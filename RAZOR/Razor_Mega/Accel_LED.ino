@@ -1,11 +1,11 @@
 void Accel_setup() {
   initIMU();
-  pinMode(22, OUTPUT); //blink LED
-  pinMode(23, OUTPUT); //blink LED
-  pinMode(24, OUTPUT); //blink LED
-  pinMode(25, OUTPUT); //blink LED
-  pinMode(26, OUTPUT); //blink LED
-  pinMode(27, OUTPUT); //blink LED
+  pinMode(L0, OUTPUT); //blink LED
+  pinMode(L1, OUTPUT); //blink LED
+  pinMode(L2, OUTPUT); //blink LED
+  pinMode(L3, OUTPUT); //blink LED
+  pinMode(L4, OUTPUT); //blink LED
+  pinMode(L5, OUTPUT); //blink LED
   
 }
 
@@ -86,12 +86,12 @@ void Accel_loop(){
       //led = pick(R);
       
       ////Serial.print(led);
-      (led==0) ? digitalWrite(22, HIGH) : digitalWrite(22, LOW);
-      (led==1) ? digitalWrite(23, HIGH) : digitalWrite(23, LOW);
-      (led==2) ? digitalWrite(24, HIGH) : digitalWrite(24, LOW);
-      (led==3) ? digitalWrite(25, HIGH) : digitalWrite(25, LOW);
-      (led==4) ? digitalWrite(26, HIGH) : digitalWrite(26, LOW);
-      (led==5) ? digitalWrite(27, HIGH) : digitalWrite(27, LOW);
+      (led==0) ? digitalWrite(L0, HIGH) : digitalWrite(L0, LOW);
+      (led==1) ? digitalWrite(L1, HIGH) : digitalWrite(L1, LOW);
+      (led==2) ? digitalWrite(L2, HIGH) : digitalWrite(L2, LOW);
+      (led==3) ? digitalWrite(L3, HIGH) : digitalWrite(L3, LOW);
+      (led==4) ? digitalWrite(L4, HIGH) : digitalWrite(L4, LOW);
+      (led==5) ? digitalWrite(L5, HIGH) : digitalWrite(L5, LOW);
         
       }else{
         r1 = false; r2 = false; r3 = false; r4 = false; r5 = false; r6 = false;
