@@ -109,6 +109,7 @@ int rawPick(float rawX, float rawY, float rawZ){
   int flip = 0;
   int trunc;
   float maxi = abs(array[0]);
+  setColor(abs(rawX),abs(rawY),abs(rawZ));
   for (int z=1; z<=2; z++){
     if (maxi < abs(array[z])){
       maxi = abs(array[z]);

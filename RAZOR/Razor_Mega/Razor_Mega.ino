@@ -8,7 +8,7 @@
 #include <SoftwareSerial.h> //not actually used, keeps Ada_GPS from barking
 #include <avr/sleep.h>
 #include "RTClib.h" //RTC
-#define ECHO_TO_SD  1 // echo data to SDcard
+#define ECHO_TO_SD  0 // echo data to SDcard
 #define PRINT_ALT   0 //print alt (can't if using processing)
 #define GPSECHO  false //false = no echo to Serial, true = raw GPS sentences for debugging
 #define LOG_FIXONLY false //false = always log, true = log only when GPS fix
@@ -38,6 +38,10 @@ uint32_t timer1 = millis();
 //led pins
 int L0 = 24; int L1 = 28; int L2 = 32;
 int L3 = 36; int L4 = 40; int L5 = 44;
+
+int redPin = 22;
+int greenPin = 23;
+int bluePin = 25;
 // this keeps track of whether we're using the interrupt
 // off by default!
 boolean usingInterrupt = false;
@@ -66,13 +70,31 @@ void setup()
   "Time (HH:MM:SS), Date (MM/DD/YY)," 
   "GPS Fix, Fix Quality, Latitude, Longitude, " \
   "knots, altitude, # of satellite fixes");
+  
+  
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);  
 }
-
+void setColor(int red, int green, int blue)
+{
+  //#ifdef COMMON_ANODE
+    red = 255 - red;
+    green = 255 - green;
+    blue = 255 - blue;
+  //#endif
+  analogWrite(redPin, red);
+  analogWrite(greenPin, green);
+  analogWrite(bluePin, blue);  
+}
 /************************************************************/
 /*** Loop
 /************************************************************/
 void loop()
 {
+  
+  
+  
   GPS_loop();
   Accel_loop();
   // approximately every 0.5 second or so, print out the current stats
