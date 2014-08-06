@@ -1,6 +1,13 @@
 import processing.opengl.*;
 import processing.serial.*;
 import processing.video.*;
+import de.fhpotsdam.unfolding.*;
+import de.fhpotsdam.unfolding.geo.*;
+import de.fhpotsdam.unfolding.utils.*;
+
+UnfoldingMap map;
+
+Location locationCleve = new Location(41f, -81f);
 
 float yaw = 0.0f;
 float pitch = 0.0f;
@@ -17,7 +24,9 @@ int fps = 30;
 
 float rawX, rawY, rawZ;
 float alt, pressure, temp;
-float sats;
+float sats, knots;
+float lat=-81.88;
+float lon= 41.4;
 
 void setup() {
   size(1280, 720, OPENGL);
@@ -34,11 +43,23 @@ void setup() {
   // Load font
   font = loadFont("Univers-66.vlw");
   textFont(font);
+  
+  map = new UnfoldingMap(this);
+  map.setTweening(true);
+  map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 13);
+  MapUtils.createDefaultEventDispatcher(this, map);
 }
 
 void draw() {
    // Reset scene
   background(0);
+  translate(-600,300,-500);
+  map.draw();
+  // Draws locations on screen positions according to their geo-locations.
+  // Fixed-size marker
+  locationCleve = new Location(lon, lat);
+  ScreenPosition posCleve = map.getScreenPosition(locationCleve);
+  translate(600,-300,500);
   lights();
   image(myMovie, 0, 0, 640, 360);
   if (frameCount%6==0){  
@@ -52,7 +73,9 @@ void draw() {
     alt = row.getFloat(" altitude");
     pressure = row.getFloat(" pressure");
     temp = row.getFloat(" temperature");
-    
+    knots = row.getFloat(" knots");
+    lat = row.getFloat("LatReal");
+    lon = row.getFloat("LonReal");
   }
 
   // Draw board
@@ -65,6 +88,7 @@ void draw() {
   fill(255);
   textAlign(LEFT);
 
+  
   // Output info text
   //text("Point FTDI connector towards screen and press 'a' to align", 10, 25);
 
@@ -89,6 +113,15 @@ void draw() {
   arrowLine(760-rawX/2, 160, 760, 160,radians(30), 0, false);
   arrowLine(760-(.25*rawY*sqrt(2)), 160-(.25*rawY*sqrt(2)), 760, 160, radians(30), 0, false);
   noStroke(); 
+  
+  translate(-600,300,-500);
+  fill(100, 200, 0);
+  ellipse(posCleve.x, posCleve.y, 20, 20);
+  fill(0,100,0);
+  text(String.format("%2.2f",knots*1.1507) + " mph", posCleve.x+15, posCleve.y-10);
+  text(String.format("%2.2f",alt) + " ft", posCleve.x+15, posCleve.y+20);
+  fill(255);
+  translate(600,-300,500);
 }
 
 // Called every time a new frame is available to read
