@@ -62,20 +62,24 @@ void draw() {
   translate(600,-300,500);
   lights();
   image(myMovie, 0, 0, 640, 360);
-  if (frameCount%6==0){  
-    row = table.getRow(frameCount);
-    rawX = row.getFloat(" rawX (accel)");
-    rawY = row.getFloat(" rawY");
-    rawZ = row.getFloat(" rawZ");
-    yaw = row.getFloat("yaw");
-    pitch = row.getFloat(" pitch");
-    roll = row.getFloat(" roll");
-    alt = row.getFloat(" altitude");
-    pressure = row.getFloat(" pressure");
-    temp = row.getFloat(" temperature");
-    knots = row.getFloat(" knots");
-    lat = row.getFloat("LatReal");
-    lon = row.getFloat("LonReal");
+  if (frameCount%1==0){
+    try{  
+      row = table.getRow(frameCount);
+      rawX = row.getFloat(" rawX (accel)");
+      rawY = row.getFloat(" rawY");
+      rawZ = row.getFloat(" rawZ");
+      yaw = row.getFloat("yaw");
+      pitch = row.getFloat(" pitch");
+      roll = row.getFloat(" roll");
+      alt = row.getFloat(" altitude");
+      pressure = row.getFloat(" pressure");
+      temp = row.getFloat(" temperature");
+      knots = row.getFloat(" knots");
+      lat = row.getFloat("LatReal");
+      lon = row.getFloat("LonReal");
+    } catch (ArrayIndexOutOfBoundsException exception) {
+      //catchStatements
+    } 
   }
 
   // Draw board
