@@ -4,9 +4,12 @@ import processing.video.*;
 import de.fhpotsdam.unfolding.*;
 import de.fhpotsdam.unfolding.geo.*;
 import de.fhpotsdam.unfolding.utils.*;
+import controlP5.*;
+
+ControlP5 cp5;
+CheckBox checkbox;
 
 UnfoldingMap map;
-
 Location locationCleve = new Location(41f, -81f);
 
 float yaw = 0.0f;
@@ -27,6 +30,8 @@ float alt, pressure, temp;
 float sats, knots;
 float lat=-81.88;
 float lon= 41.4;
+int frameJump; //current frame
+int numRows; //number of csv rows
 
 void setup() {
   size(1280, 720, OPENGL);
@@ -34,11 +39,13 @@ void setup() {
   smooth();
   noStroke();
   frameRate(30);
+  cp5 = new ControlP5(this);
   
   myMovie = new Movie(this, "/Users/jeffchin/Desktop/gopro.mp4");
   myMovie.loop();
   table = loadTable("/Users/jeffchin/Desktop/GPS006.CSV", "header");
-  println(table.getRowCount() + " total rows in table"); 
+  numRows = table.getRowCount();
+  println(numRows + " total rows in table"); 
   
   // Load font
   font = loadFont("Univers-66.vlw");
@@ -46,8 +53,29 @@ void setup() {
   
   map = new UnfoldingMap(this);
   map.setTweening(true);
-  map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 13);
+  map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 16);
+  map.panTo(8000,-5000);//hack, hardcoded to mastick
   MapUtils.createDefaultEventDispatcher(this, map);
+  
+  cp5.addSlider("slider")
+     .setPosition(850,605)
+     .setSize(300,20)
+     .setRange(0,numRows)
+     .setValue(0)
+     ;
+  checkbox = cp5.addCheckBox("checkBox")
+                .setPosition(1200, 605)
+                .setColorForeground(color(120))
+                .setColorActive(color(255))
+                .setColorLabel(color(255))
+                .setSize(20, 20)
+                .addItem("pause", 0)
+                ;
+  
+  // reposition the Label for controller 'slider'
+  cp5.getController("slider").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+  cp5.getController("slider").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
+  frameJump = 0;
 }
 
 void draw() {
@@ -62,9 +90,11 @@ void draw() {
   translate(600,-300,500);
   lights();
   image(myMovie, 0, 0, 640, 360);
-  if (frameCount%1==0){
+  frameJump++;
+  if (frameJump%1==0){
     try{  
-      row = table.getRow(frameCount);
+      row = table.getRow(frameJump);
+      cp5.controller("slider").setValue(frameJump);
       rawX = row.getFloat(" rawX (accel)");
       rawY = row.getFloat(" rawY");
       rawZ = row.getFloat(" rawZ");
@@ -113,9 +143,9 @@ void draw() {
   popMatrix();
 
   stroke(255, 0, 0);
-  arrowLine(760, 160-rawZ/2, 760, 160, radians(30), 0, false);
-  arrowLine(760-rawX/2, 160, 760, 160,radians(30), 0, false);
-  arrowLine(760-(.25*rawY*sqrt(2)), 160-(.25*rawY*sqrt(2)), 760, 160, radians(30), 0, false);
+  arrowLine(760, 160-rawZ/4, 760, 160, radians(30), 0, false);
+  arrowLine(760-rawX/4, 160, 760, 160,radians(30), 0, false);
+  arrowLine(760-(.125*rawY*sqrt(2)), 160-(.25*rawY*sqrt(2)), 760, 160, radians(30), 0, false);
   noStroke(); 
   
   translate(-600,300,-500);
@@ -234,4 +264,20 @@ void arrowhead(float x0, float y0, float lineAngle,
     line(x0, y0, x3, y3);
   } 
 }
-
+void slider(float newFrame) {
+  //println("a slider event. setting background to "+theColor);
+  frameJump = round(newFrame);
+  if (cp5.controller("slider").isMouseOver() && cp5.controller("slider").isMousePressed()){
+    myMovie.jump(myMovie.duration()*frameJump/numRows);
+  }
+  
+}
+void checkBox(float[] a) { //pause button
+  if (a[0] == 1.0){
+    noLoop();
+    myMovie.pause();
+  }else{
+    loop();
+    myMovie.play();
+  }
+}
