@@ -8,8 +8,8 @@
 #include <SoftwareSerial.h> //not actually used, keeps Ada_GPS from barking
 #include <avr/sleep.h>
 #include "RTClib.h" //RTC
-#define ECHO_TO_SD  0 // echo data to SDcard
-#define PRINT_ALT   0 //print alt (can't if using processing)
+#define ECHO_TO_SD  1 // echo data to SDcard
+#define PRINT_ALT   1 //print alt (can't if using processing)
 #define GPSECHO  false //false = no echo to Serial, true = raw GPS sentences for debugging
 #define LOG_FIXONLY false //false = always log, true = log only when GPS fix
 //GPS + Logging Stuff
@@ -35,13 +35,15 @@ float rpy[NUMBER_OF_FIELDS];    // array holding values for all the fields
 float yaw, pitch, roll, rawX, rawY, rawZ;
 boolean r1,r2,r3,r4,r5,r6;
 uint32_t timer1 = millis();
-//led pins
-int L0 = 24; int L1 = 28; int L2 = 32;
+//rotate led pins
+int L0 = 0; int L1 = 0; int L2 = 0; //disabled
 int L3 = 36; int L4 = 40; int L5 = 44;
-
-int redPin = 22;
-int greenPin = 23;
-int bluePin = 25;
+//status LED pins (red)
+int altpin = 24; int gpspin = 28; int temppin = 32;
+//tri LED pins
+int redPin = 46;
+int greenPin = 48;
+int bluePin = 50;
 // this keeps track of whether we're using the interrupt
 // off by default!
 boolean usingInterrupt = false;
@@ -71,7 +73,9 @@ void setup()
   "GPS Fix, Fix Quality, Latitude, Longitude, " \
   "knots, altitude, # of satellite fixes");
   
-  
+  pinMode(altpin, OUTPUT);
+  pinMode(gpspin, OUTPUT);
+  pinMode(temppin, OUTPUT);
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);  
@@ -93,10 +97,9 @@ void setColor(int red, int green, int blue)
 void loop()
 {
   
-  
-  
   GPS_loop();
   Accel_loop();
+
   // approximately every 0.5 second or so, print out the current stats
   if (millis() - timer1 > 100) { 
     timer1 = millis(); // reset the timer
@@ -129,6 +132,11 @@ void loop()
       }
     #endif
   }
+  
+  //status pins
+  (pressure < -900) ? digitalWrite(altpin, HIGH) : digitalWrite(altpin, LOW);
+     
+  
 }
 
 

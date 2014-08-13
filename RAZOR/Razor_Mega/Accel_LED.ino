@@ -86,12 +86,12 @@ void Accel_loop(){
       //led = pick(R);
       
       ////Serial.print(led);
-      (led==0) ? digitalWrite(L0, HIGH) : digitalWrite(L0, LOW);
+      (led==5) ? digitalWrite(L0, HIGH) : digitalWrite(L0, LOW);//tilt forward
       (led==1) ? digitalWrite(L1, HIGH) : digitalWrite(L1, LOW);
       (led==2) ? digitalWrite(L2, HIGH) : digitalWrite(L2, LOW);
-      (led==3) ? digitalWrite(L3, HIGH) : digitalWrite(L3, LOW);
-      (led==4) ? digitalWrite(L4, HIGH) : digitalWrite(L4, LOW);
-      (led==5) ? digitalWrite(L5, HIGH) : digitalWrite(L5, LOW);
+      (led==3) ? digitalWrite(L3, HIGH) : digitalWrite(L3, LOW); //tilt left
+      (led==4) ? digitalWrite(L4, HIGH) : digitalWrite(L4, LOW); //default
+      (led==0) ? digitalWrite(L5, HIGH) : digitalWrite(L5, LOW);
         
       }else{
         r1 = false; r2 = false; r3 = false; r4 = false; r5 = false; r6 = false;
@@ -99,11 +99,12 @@ void Accel_loop(){
       
       timer = millis();
       
-      #if ECHO_TO_SD
-        if (altitude > -10 & pressure < 10000){ //stop reading if # are bogus
+     #if PRINT_ALT 
+        if (pressure > -900){ //stop reading if # are bogus
           altimeter_loop();
         }
-      
+     #endif
+     #if ECHO_TO_SD 
         //SD logging
         DateTime now;
         now = RTC.now();
