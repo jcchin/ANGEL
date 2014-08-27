@@ -9,7 +9,7 @@
 #include <avr/sleep.h>
 #include "RTClib.h" //RTC
 #define ECHO_TO_SD  1 // echo data to SDcard
-#define PRINT_ALT   1 //print alt (can't if using processing)
+#define PRINT_ALT   0 //print alt (can't if using processing)
 #define GPSECHO  false //false = no echo to Serial, true = raw GPS sentences for debugging
 #define LOG_FIXONLY false //false = always log, true = log only when GPS fix
 //GPS + Logging Stuff
@@ -39,7 +39,13 @@ uint32_t timer1 = millis();
 int L0 = 0; int L1 = 0; int L2 = 0; //disabled
 int L3 = 36; int L4 = 40; int L5 = 44;
 //status LED pins (red)
-int altpin = 24; int gpspin = 28; int temppin = 32;
+int alt_status = 24; int gps_status = 28; int temp_status = 32;
+//TMP36 Pin Variables
+int tmp36 = 0; //the analog pin the TMP36's Vout (sense) pin is connected to
+int reading;   //the resolution is 10 mV / degree centigrade with a
+float voltage; //500 mV offset to allow for negative temperatures
+float temperatureF;
+#define aref_voltage 3.3 // we tie 3.3V to ARef
 //tri LED pins
 int redPin = 46;
 int greenPin = 48;
@@ -64,21 +70,23 @@ void setup()
   imuSerial.begin(57600); // init the Serial2 port to get data from the IMU
   GPS.begin(9600); //init the Serial3 port to read from the GPS
   GPS_setup();
-  altimeter_setup();
+  //altimeter_setup();
   delay(500); //give the IMU time to start-up
   Accel_setup();
   logfile.println( \
-  "yaw, pitch, roll, rawX (accel), rawY, rawZ, altitude, pressure, temperature, " \
+  "yaw, pitch, roll, rawX (accel), rawY, rawZ, tmp36, " \
   "Time (HH:MM:SS), Date (MM/DD/YY)," 
   "GPS Fix, Fix Quality, Latitude, Longitude, " \
   "knots, altitude, # of satellite fixes");
   
-  pinMode(altpin, OUTPUT);
-  pinMode(gpspin, OUTPUT);
-  pinMode(temppin, OUTPUT);
+  pinMode(alt_status, OUTPUT);
+  pinMode(gps_status, OUTPUT);
+  pinMode(temp_status, OUTPUT);
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
-  pinMode(bluePin, OUTPUT);  
+  pinMode(bluePin, OUTPUT); 
+  // ARef set externally (for TMP36)
+  analogReference(EXTERNAL); 
 }
 void setColor(int red, int green, int blue)
 {
@@ -99,7 +107,7 @@ void loop()
   
   GPS_loop();
   Accel_loop();
-
+  tmp36_loop(); //in Altimeter.ino
   // approximately every 0.5 second or so, print out the current stats
   if (millis() - timer1 > 100) { 
     timer1 = millis(); // reset the timer
@@ -134,9 +142,8 @@ void loop()
   }
   
   //status pins
-  (pressure < -900) ? digitalWrite(altpin, HIGH) : digitalWrite(altpin, LOW);
-     
-  
+  (pressure < -900) ? digitalWrite(alt_status, HIGH) : digitalWrite(alt_status, LOW);
+  (temperatureF < -100) ? digitalWrite(temp_status, HIGH) : digitalWrite(temp_status, LOW);
 }
 
 

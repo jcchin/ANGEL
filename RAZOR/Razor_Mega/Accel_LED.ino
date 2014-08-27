@@ -99,11 +99,11 @@ void Accel_loop(){
       
       timer = millis();
       
-     #if PRINT_ALT 
-        if (pressure > -900){ //stop reading if # are bogus
-          altimeter_loop();
-        }
-     #endif
+     //#if PRINT_ALT 
+     //   if (pressure > -900){ //stop reading if # are bogus
+     //     altimeter_loop();
+     //   }
+     //#endif
      #if ECHO_TO_SD 
         //SD logging
         DateTime now;
@@ -121,11 +121,13 @@ void Accel_loop(){
         logfile.print(',');
         logfile.print(rawZ);
         logfile.print(',');
-        logfile.print(altitude);
-        logfile.print(',');
-        logfile.print(pressure);
-        logfile.print(',');
-        logfile.print(temperature);
+        //logfile.print(altitude);
+        //logfile.print(',');
+        //logfile.print(pressure);
+        //logfile.print(',');
+        //logfile.print(temperature);
+        //logfile.print(',');
+        logfile.print(temperatureF); //tmp36
         //Serial.println();
         logfile.print(',');;
         logfile.flush();
