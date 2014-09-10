@@ -30,7 +30,7 @@ int fps = 30;
 
 float rawX, rawY, rawZ;
 float alt, pressure, temp;
-float sats, knots;
+float sats, knots, fix;
 float lat=-81.88;
 float lon= 41.4;
 int frameJump; //current frame
@@ -45,6 +45,7 @@ void setup() {
   cp5 = new ControlP5(this);
   
   myMovie = new Movie(this, "../data/Flight1Combo854_480p.mp4"); //Combo854_480p
+  myMovie.speed(2);
   myMovie.loop();
   table = loadTable("../data/cleanedData/GPScombined.csv", "header");
   numRows = table.getRowCount();
@@ -58,17 +59,40 @@ void setup() {
   map.setTweening(true);
   //map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 16);
   //map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 12);
-  map.zoomAndPanTo(new Location(41.459f, -83.2f), 12);
+  map.zoomAndPanTo(new Location(41.459f, -83.2f), 15);
   //map.panTo(8000,-5000);//hack, hardcoded to mastick
+  map.panTo(-4000,200); //+ right, + down, hardcoded to Fremont Airport
   MapUtils.createDefaultEventDispatcher(this, map);
-  
+
+  //jump ahead buttons
+  cp5.addButton("Launch")
+     //.setValue(0)
+     .setPosition(675,550)
+     .setSize(25,25)
+     ;   
+  cp5.addButton("Ascent")
+     //.setValue(0)
+     .setPosition(750,550)
+     .setSize(25,25)
+     ;
+  cp5.addButton("Burst")
+     //.setValue(0)
+     .setPosition(1000,550)
+     .setSize(20,20)
+     ;
+  cp5.addButton("Landing")
+     //.setValue(0)
+     .setPosition(1250,550)
+     .setSize(20,20)
+     ;
+  //playblack slider
   cp5.addSlider("slider")
      .setPosition(675,605)
      .setSize(600,20)
      .setRange(0,numRows)
      .setValue(0)
      ;
-  checkbox = cp5.addCheckBox("checkBox")
+  checkbox = cp5.addCheckBox("checkBox") //pause button
                 .setPosition(1200, 655)
                 .setColorForeground(color(120))
                 .setColorActive(color(255))
@@ -81,6 +105,7 @@ void setup() {
   cp5.getController("slider").getValueLabel().align(ControlP5.LEFT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
   cp5.getController("slider").getCaptionLabel().align(ControlP5.RIGHT, ControlP5.BOTTOM_OUTSIDE).setPaddingX(0);
   frameJump = 0;
+  
 }
 
 void draw() {
@@ -93,7 +118,6 @@ void draw() {
   // Fixed-size marker
   locationCurr = new Location(lon, lat);
   ScreenPosition posCleve = map.getScreenPosition(locationCurr);
-  //map.panTo(posCleve);
   translate(600,-300,500);
   lights();
   image(myMovie, 0, 0, 854, 480);
@@ -120,6 +144,8 @@ void draw() {
       knots = row.getFloat(" knots");
       lat = row.getFloat("LatReal");
       lon = row.getFloat("LonReal");
+      sats = row.getFloat(" # of satellite fixes");
+      fix = row.getFloat("GPS Fix");
     } catch (ArrayIndexOutOfBoundsException exception) {
       //catchStatements
     } 
@@ -127,7 +153,7 @@ void draw() {
 
   // Draw board
   pushMatrix();
-  translate(4*width/5, height/2, -350);
+  translate(width, 4*height/7, -550);
   drawBoard();
   popMatrix();
   
@@ -135,7 +161,6 @@ void draw() {
   fill(255);
   textAlign(LEFT);
 
-  
   // Output info text
   //text("Point FTDI connector towards screen and press 'a' to align", 10, 25);
 
@@ -143,32 +168,64 @@ void draw() {
   pushMatrix();
   translate(10, height - 10);
   textAlign(LEFT);
+  fill(90,90,255);
   text("Yaw: " + ((int) yaw), width-140, 300-height+(50*2));
   text("Pitch: " + ((int) pitch), width-140, 300-height+(50*1));
   text("Roll: " + ((int) roll), width-140, 300-height+(50*0));
-  text("X: " + String.format("%1.2f",rawX/230), width-(150*3.2), 190-height); 
-  text("Y: " + String.format("%1.2f",rawY/230), width-(150*4.3), 100-height);
-  text("Z: " + String.format("%1.2f",rawZ/230 -1), width-(150*3.45), 80-height);
-  text("Raw acceleration (in g's)", width-(150*4),40-height);
-  text("Altitude: " + String.format("%3.2f", alt) + " ft", width-275, 100-height+(50*2));
-  text("Pressure: " + String.format("%3.2f", pressure) + " psi", width-275, 100-height+(50*1));
-  text("Temp: " + String.format("%3.2f", temp) + " F", width-275, 100-height+(50*0));
+  fill(255,0,0);
+  text("X: " + String.format("%1.2f",rawX/230), width-(150*2), 180-height); 
+  text("Y: " + String.format("%1.2f",rawY/230), width-(150*2.8), 130-height);
+  text("Z: " + String.format("%1.2f",rawZ/230 -1), width-(150*2.4), 80-height);
+  text("Raw accel (in g's)", width-(150*2.9),40-height);
+  fill(255);
+  text("Altitude: " + String.format("%3.2f", alt*3.28084) + " ft", width-225, 100-height+(40*1));
+  text("Speed: " + String.format("%3.2f", knots * 1.15078) + " mph", width - 225, 100- height+(40*0));
+  //text("Pressure: " + String.format("%3.2f", pressure) + " psi", width-250, 100-height+(50*1));
+  text("Temp: " + String.format("%3.2f", temp-24) + " F", width-225, 100-height+(40*-1));
+  text("GPS: " + String.format("%2.0f", sats) + " sats locked", width-225, 100-height+(40*2));
   popMatrix();
-
-  stroke(255, 0, 0);
-  arrowLine(760, 160-(rawZ-230), 760, 160, radians(30), 0, false);
-  arrowLine(760-rawX/4, 160, 760, 160,radians(30), 0, false);
-  arrowLine(760-(.125*rawY*sqrt(2)), 160-(.25*rawY*sqrt(2)), 760, 160, radians(30), 0, false);
-  noStroke(); 
+  
+  fill(10,150,20);
+  rect(675,595,600,5); //green zones
+  fill(200,10,10);
+  rect(675 + (600*.286),595,(600*.251),5); //red zones
+  rect(675 + (600*.76995),595,(600*.1056),5);
+  if(fix > 0){
+    stroke(90,90,255);
+    line(950,155,950,100); //z axis
+    line(950,155, 1005, 155); // x axis
+    line(950,155,950-25,155-25); // y axis
+    stroke(255, 0, 0);
+    arrowLine(950, 155-(rawZ-230), 950, 155, radians(30), 0, false);
+    arrowLine(950-rawX/4, 155, 950, 155,radians(30), 0, false);
+    arrowLine(950-(.125*rawY*sqrt(2)), 155-(.25*rawY*sqrt(2)), 950, 155, radians(30), 0, false);
+  
+  }else{ //block out invalid data
+    fill(0);
+    rect(800,0,1000,500);
+    fill(255); 
+    text("No Data :(", width - 300, 300);
+  }
+  fill(255,0,0);
+  noStroke();
   
   translate(-600,300,-500);
-  fill(100, 200, 0);
-  ellipse(posCleve.x, posCleve.y, 20, 20);
-  fill(0,100,0);
-  text(String.format("%2.2f",knots*1.1507) + " mph", posCleve.x+15, posCleve.y-10);
-  text(String.format("%2.2f",alt) + " ft", posCleve.x+15, posCleve.y+20);
+  if(fix > 0){
+    fill(100, 200, 0);
+    ellipse(posCleve.x, posCleve.y, 20, 20);
+    fill(0,100,0);
+    text(String.format("%2.2f",knots*1.1507) + " mph", posCleve.x+15, posCleve.y-10);
+    text(String.format("%2.2f",alt) + " ft", posCleve.x+15, posCleve.y+20);
+  }else{
+    fill(250, 0, 0);
+    ellipse(posCleve.x, posCleve.y, 20, 20);
+    text("??", posCleve.x+15, posCleve.y-10);
+  }
   fill(255);
   translate(600,-300,500);
+  
+  
+  
 }
 
 // Called every time a new frame is available to read
@@ -218,14 +275,20 @@ void drawBoard() {
   rotateX(-radians(pitch));
   rotateZ(radians(roll)); 
   // Board body
-  fill(255, 0, 0);
-  box(250, 50, 400);
+  fill(255, 0 , 0);
+  box(150, 100, 300);
+  fill(10,10,10);
+  box(23,23,301);
+  translate(20,40,0);
+  fill(255);
+  box(10,10,500); //antenna
+  translate(-20,-45,0);
   // Forward-arrow
   pushMatrix();
-  translate(0, 0, -200);
+  translate(0, 25, -150);
   scale(0.5f, 0.2f, 0.25f);
-  fill(0, 255, 0);
-  drawArrow(1.0f, 2.0f);
+  fill(90, 90, 255);
+  drawArrow(.75f, 1.f);
   popMatrix();
   popMatrix();
 }
@@ -293,6 +356,21 @@ void checkBox(float[] a) { //pause button
     loop();
     myMovie.play();
   }
+}
+
+void zoomOut(int theValue) {
+  map.zoom(-1);
+  map.panTo(3000,500);
+}
+
+void Burst() {
+  frameJump = 42100;
+  myMovie.jump(myMovie.duration()*0.669);
+}
+
+void Landing() {
+  frameJump = 65500;
+  myMovie.jump(myMovie.duration()*0.99);
 }
 
 void cameraPan(int frameNum) { //pan camera based on location
