@@ -4,6 +4,7 @@ import processing.video.*;
 import de.fhpotsdam.unfolding.*;
 import de.fhpotsdam.unfolding.geo.*;
 import de.fhpotsdam.unfolding.utils.*;
+import de.fhpotsdam.unfolding.providers.Google;
 import controlP5.*;
 
 ControlP5 cp5;
@@ -11,6 +12,8 @@ CheckBox checkbox;
 
 UnfoldingMap map;
 Location locationCleve = new Location(41f, -81f);
+Location locationFremont = new Location(41f, -83f); //starting location
+Location locationCurr = locationFremont; //current loc
 
 float yaw = 0.0f;
 float pitch = 0.0f;
@@ -41,9 +44,9 @@ void setup() {
   frameRate(30);
   cp5 = new ControlP5(this);
   
-  myMovie = new Movie(this, "/Users/jeffchin/Desktop/gopro.mp4");
+  myMovie = new Movie(this, "../data/Flight1Combo854_480p.mp4"); //Combo854_480p
   myMovie.loop();
-  table = loadTable("/Users/jeffchin/Desktop/GPS017.CSV", "header");
+  table = loadTable("../data/cleanedData/GPScombined.csv", "header");
   numRows = table.getRowCount();
   println(numRows + " total rows in table"); 
   
@@ -51,21 +54,22 @@ void setup() {
   font = loadFont("Univers-66.vlw");
   textFont(font);
   
-  map = new UnfoldingMap(this);
+  map = new UnfoldingMap(this, new Google.GoogleMapProvider());
   map.setTweening(true);
   //map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 16);
-  map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 12);
+  //map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 12);
+  map.zoomAndPanTo(new Location(41.459f, -83.2f), 12);
   //map.panTo(8000,-5000);//hack, hardcoded to mastick
   MapUtils.createDefaultEventDispatcher(this, map);
   
   cp5.addSlider("slider")
-     .setPosition(850,605)
-     .setSize(300,20)
+     .setPosition(675,605)
+     .setSize(600,20)
      .setRange(0,numRows)
      .setValue(0)
      ;
   checkbox = cp5.addCheckBox("checkBox")
-                .setPosition(1200, 605)
+                .setPosition(1200, 655)
                 .setColorForeground(color(120))
                 .setColorActive(color(255))
                 .setColorLabel(color(255))
@@ -80,19 +84,27 @@ void setup() {
 }
 
 void draw() {
+  
    // Reset scene
   background(0);
   translate(-600,300,-500);
   map.draw();
   // Draws locations on screen positions according to their geo-locations.
   // Fixed-size marker
-  locationCleve = new Location(lon, lat);
-  ScreenPosition posCleve = map.getScreenPosition(locationCleve);
+  locationCurr = new Location(lon, lat);
+  ScreenPosition posCleve = map.getScreenPosition(locationCurr);
+  //map.panTo(posCleve);
   translate(600,-300,500);
   lights();
-  image(myMovie, 0, 0, 640, 360);
+  image(myMovie, 0, 0, 854, 480);
+  /*
+  if (millis() > 2000){ // wait before starting video
+    myMovie.loop();
+  }
+  */
   frameJump++;
-  if (frameJump%1==0){
+  //cameraPan(frameJump);
+  if (frameJump%4==0){
     try{  
       row = table.getRow(frameJump);
       cp5.controller("slider").setValue(frameJump);
@@ -108,7 +120,6 @@ void draw() {
       knots = row.getFloat(" knots");
       lat = row.getFloat("LatReal");
       lon = row.getFloat("LonReal");
-      
     } catch (ArrayIndexOutOfBoundsException exception) {
       //catchStatements
     } 
@@ -135,9 +146,9 @@ void draw() {
   text("Yaw: " + ((int) yaw), width-140, 300-height+(50*2));
   text("Pitch: " + ((int) pitch), width-140, 300-height+(50*1));
   text("Roll: " + ((int) roll), width-140, 300-height+(50*0));
-  text("X: " + String.format("%1.2f",rawX/200), width-(150*3.2), 190-height); 
-  text("Y: " + String.format("%1.2f",rawY/200), width-(150*4.3), 100-height);
-  text("Z: " + String.format("%1.2f",rawZ/200), width-(150*3.45), 80-height);
+  text("X: " + String.format("%1.2f",rawX/230), width-(150*3.2), 190-height); 
+  text("Y: " + String.format("%1.2f",rawY/230), width-(150*4.3), 100-height);
+  text("Z: " + String.format("%1.2f",rawZ/230 -1), width-(150*3.45), 80-height);
   text("Raw acceleration (in g's)", width-(150*4),40-height);
   text("Altitude: " + String.format("%3.2f", alt) + " ft", width-275, 100-height+(50*2));
   text("Pressure: " + String.format("%3.2f", pressure) + " psi", width-275, 100-height+(50*1));
@@ -145,7 +156,7 @@ void draw() {
   popMatrix();
 
   stroke(255, 0, 0);
-  arrowLine(760, 160-rawZ/4, 760, 160, radians(30), 0, false);
+  arrowLine(760, 160-(rawZ-230), 760, 160, radians(30), 0, false);
   arrowLine(760-rawX/4, 160, 760, 160,radians(30), 0, false);
   arrowLine(760-(.125*rawY*sqrt(2)), 160-(.25*rawY*sqrt(2)), 760, 160, radians(30), 0, false);
   noStroke(); 
@@ -281,5 +292,19 @@ void checkBox(float[] a) { //pause button
   }else{
     loop();
     myMovie.play();
+  }
+}
+
+void cameraPan(int frameNum) { //pan camera based on location
+  if (frameNum < 1000){
+    
+  } else if (frameNum > 1000 && frameNum < 10000){
+    //map.zoomAndPanTo(new Location(41.3352f, -83.1662f), 12);
+  } else if (frameNum > 10000 && frameNum < 40000){
+    //map.zoomAndPanTo(new Location(41.3352f, -83.1662f), 9);
+  } else if (frameNum > 40000 && frameNum < 60000){
+    
+  } else if (frameNum > 60000){
+    
   }
 }
