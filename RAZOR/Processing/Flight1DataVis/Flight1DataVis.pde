@@ -20,6 +20,7 @@ float pitch = 0.0f;
 float roll = 0.0f;
 float yawOffset = 0.0f;
 float theta;
+int[] numbers = new int[600];
 
 PFont font;
 
@@ -37,7 +38,7 @@ int frameJump; //current frame
 int numRows; //number of csv rows
 
 void setup() {
-  size(1280, 720, OPENGL);
+  size(1260, 800, OPENGL);
   background(0);
   smooth();
   noStroke();
@@ -61,39 +62,39 @@ void setup() {
   //map.zoomAndPanTo(new Location(41.40015f, -81.8756f), 12);
   map.zoomAndPanTo(new Location(41.459f, -83.2f), 15);
   //map.panTo(8000,-5000);//hack, hardcoded to mastick
-  map.panTo(-4000,200); //+ right, + down, hardcoded to Fremont Airport
+  map.panTo(4300,5700); //+ right, + down, hardcoded to Fremont Airport
   MapUtils.createDefaultEventDispatcher(this, map);
 
   //jump ahead buttons
   cp5.addButton("Launch")
      //.setValue(0)
-     .setPosition(675,550)
+     .setPosition(675,485)
      .setSize(25,25)
      ;   
-  cp5.addButton("Ascent")
-     //.setValue(0)
-     .setPosition(750,550)
-     .setSize(25,25)
-     ;
   cp5.addButton("Burst")
      //.setValue(0)
-     .setPosition(1000,550)
-     .setSize(20,20)
+     .setPosition(1000,485)
+     .setSize(25,25)
+     ;
+  cp5.addButton("Descent")
+     //.setValue(0)
+     .setPosition(1150,485)
+     .setSize(25,25)
      ;
   cp5.addButton("Landing")
      //.setValue(0)
-     .setPosition(1250,550)
-     .setSize(20,20)
+     .setPosition(1200,485)
+     .setSize(25,25)
      ;
   //playblack slider
   cp5.addSlider("slider")
-     .setPosition(675,605)
-     .setSize(600,20)
+     .setPosition(675,520)
+     .setSize(550,20)
      .setRange(0,numRows)
      .setValue(0)
      ;
   checkbox = cp5.addCheckBox("checkBox") //pause button
-                .setPosition(1200, 655)
+                .setPosition(650, 555)
                 .setColorForeground(color(120))
                 .setColorActive(color(255))
                 .setColorLabel(color(255))
@@ -153,7 +154,7 @@ void draw() {
 
   // Draw board
   pushMatrix();
-  translate(width, 4*height/7, -550);
+  translate(width, 3*height/7, -550);
   drawBoard();
   popMatrix();
   
@@ -186,10 +187,10 @@ void draw() {
   popMatrix();
   
   fill(10,150,20);
-  rect(675,595,600,5); //green zones
+  rect(675,513,550,5); //green zones
   fill(200,10,10);
-  rect(675 + (600*.286),595,(600*.251),5); //red zones
-  rect(675 + (600*.76995),595,(600*.1056),5);
+  rect(675 + (550*.286),513,(550*.251),5); //red zones
+  rect(675 + (550*.76995),513,(550*.1056),5);
   if(fix > 0){
     stroke(90,90,255);
     line(950,155,950,100); //z axis
@@ -200,7 +201,7 @@ void draw() {
     arrowLine(950-rawX/4, 155, 950, 155,radians(30), 0, false);
     arrowLine(950-(.125*rawY*sqrt(2)), 155-(.25*rawY*sqrt(2)), 950, 155, radians(30), 0, false);
   
-  }else{ //block out invalid data
+  }else if(alt < 10){ //block out invalid data
     fill(0);
     rect(800,0,1000,500);
     fill(255); 
@@ -224,7 +225,7 @@ void draw() {
   fill(255);
   translate(600,-300,500);
   
-  
+  movingGraph();
   
 }
 
@@ -276,16 +277,16 @@ void drawBoard() {
   rotateZ(radians(roll)); 
   // Board body
   fill(255, 0 , 0);
-  box(150, 100, 300);
+  box(150, 100, 200);
   fill(10,10,10);
-  box(23,23,301);
+  box(23,23,201);
   translate(20,40,0);
   fill(255);
-  box(10,10,500); //antenna
+  box(10,10,400); //antenna
   translate(-20,-45,0);
   // Forward-arrow
   pushMatrix();
-  translate(0, 25, -150);
+  translate(0, 25, -100);
   scale(0.5f, 0.2f, 0.25f);
   fill(90, 90, 255);
   drawArrow(.75f, 1.f);
@@ -363,14 +364,31 @@ void zoomOut(int theValue) {
   map.panTo(3000,500);
 }
 
+void Launch(){
+   frameJump = 1; 
+   myMovie.jump(0);
+   map.zoomAndPanTo(new Location(41.459f, -83.2f), 15);
+   map.panTo(1200,4300); //+ right, + down, hardcoded to Fremont Airport
+}
+
 void Burst() {
   frameJump = 42100;
   myMovie.jump(myMovie.duration()*0.669);
+  map.zoomAndPanTo(new Location(41.15f, -82.9f), 10);
+}
+
+void Descent(){
+  frameJump = 58100;
+  myMovie.jump(myMovie.duration()*frameJump/numRows);
+  map.zoomAndPanTo(new Location(40.8767f, -82.449f), 13);
+  
 }
 
 void Landing() {
   frameJump = 65500;
   myMovie.jump(myMovie.duration()*0.99);
+  map.zoomAndPanTo(new Location(40.85f, -82.41f), 16);
+  map.panTo(50,-85); //+ right, + down, hardcoded to landing site
 }
 
 void cameraPan(int frameNum) { //pan camera based on location
@@ -385,4 +403,22 @@ void cameraPan(int frameNum) { //pan camera based on location
   } else if (frameNum > 60000){
     
   }
+}
+
+void movingGraph(){
+  //altitude moving graph
+  stroke(255);
+  fill(0);
+  for(int i = 1; i<numbers.length;i++){
+    numbers[i-1] = numbers[i];
+  }
+  numbers[numbers.length-1]=round((alt/27000)*200);
+  
+  beginShape();
+  for(int i = 0; i<numbers.length;i++){
+    vertex(i+650,750-numbers[i]);
+  }
+  endShape();
+  noStroke();
+  fill(255);
 }
