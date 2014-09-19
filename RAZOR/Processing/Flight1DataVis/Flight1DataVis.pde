@@ -216,7 +216,7 @@ void draw() {
     ellipse(posCleve.x, posCleve.y, 20, 20);
     fill(0,100,0);
     text(String.format("%2.2f",knots*1.1507) + " mph", posCleve.x+15, posCleve.y-10);
-    text(String.format("%2.2f",alt) + " ft", posCleve.x+15, posCleve.y+20);
+    text(String.format("%2.2f",alt*3.28084) + " ft", posCleve.x+15, posCleve.y+20);
   }else{
     fill(250, 0, 0);
     ellipse(posCleve.x, posCleve.y, 20, 20);
