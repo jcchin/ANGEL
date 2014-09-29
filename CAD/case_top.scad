@@ -1,3 +1,4 @@
+module caseTop(){
 $fn = 20;
 
 length = 145; 
@@ -45,3 +46,8 @@ rotate([0,0,180])translate([-30, -75, -9.5])foot();
 translate([7.5, width-12.5, height-15])cube([13, 15.5, 14]);
 }
 rotate([0,0,180])translate([-115, -75, -9.5])foot();
+}
+
+translate([0, 0, 50])caseTop();
+include<case_bottom.scad>
+

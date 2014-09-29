@@ -1,6 +1,7 @@
 fn = 20;
 
 test = 0; //test piece = 1, real piece = 0;
+nub = 1;
 
 innerLength = 72.1; // 2.8" holder length (+ to - of battery)
 innerWidth = 74.2; // 2.82" from battery to battery
@@ -19,7 +20,11 @@ module DCell (){
 }
 
 module Cover (){
-	translate([2,85,0])cube([innerLength-tol,innerWidth+(wall*2),wall/1.5-tol]); //plate
+
+translate([2,85-wall-tol*2,0])cube([innerLength-tol,innerWidth+(wall*3)+tol*3,wall/1.5-tol]); //pl
+
+translate([innerLength/2 + wall/2,85-wall-tol*2,0])cube([wall,wall,wall*2]); //nub
+	//translate([2,85,0])cube([innerLength-tol,innerWidth+(wall*2),wall/1.5-tol]); //plate
 	translate([2,85+innerWidth+(wall*2),0])cube([innerLength-tol,wall,wall*1.5]); //lip
 	translate([innerLength/2 + wall/2,85,wall/1.5-tol])cube([wall,innerWidth+(wall*2),wall-tol*2]); //T-slot
 }
