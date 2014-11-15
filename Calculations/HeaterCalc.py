@@ -11,31 +11,12 @@ from openmdao.lib.datatypes.api import Float, Bool, Str
 from openmdao.lib.drivers.api import CaseIteratorDriver, BroydenSolver, NewtonSolver
 from openmdao.lib.casehandlers.api import BSONCaseRecorder, CaseDataset
 
-
-class HeaterEnvelope(Assembly):
-    """ Run the calcs at various ambient conditions """
-
-    #output
-    timestamp = Str(iotype='out',desc='timestamp for output filename')
-
-    def configure(self): 
-
-        driver = self.add('driver', CaseIteratorDriver())
-        self.add('heater_sys', HeaterSystem())
-
-        driver.add_parameter('heater_sys.temp_ambient')
-        driver.add_response('heater_sys.temp_boundary')
-
-        driver.case_inputs.heater_sys.temp_ambient = np.array([325, 260])      
-
-        self.timestamp = time.strftime("%Y%m%d%H%M%S")
-        #self.recorders = [BSONCaseRecorder('./output/therm_%s.bson'%self.timestamp)]
-
 class HeaterSystem(Assembly): 
     """ Solver Assembly """ 
 
     temp_boundary = Float(0, units = 'K', iotype="out", desc="final equilibirum tube wall temperature")
     temp_ambient = Float(322.0, units = 'K', iotype='in', desc='Average Temperature of the outside air')
+    Nu_multiplier = Float(1, iotype='in', desc='fudge factor to switch convection on and off')
 
     def configure(self): 
         #Add Components
@@ -48,6 +29,7 @@ class HeaterSystem(Assembly):
         #Boundary Input Connections
         self.connect('heater.temp_boundary','temp_boundary')
         self.connect('heater.temp_ambient','temp_ambient')
+        self.connect('heater.Nu_multiplier','Nu_multiplier')
 
 class HeaterCalcs(Component):
     """ Heat Balance """
@@ -57,10 +39,11 @@ class HeaterCalcs(Component):
     batt_area = Float(.16,units='m**2',iotype='in', desc='battery surface area') #.16 = 250in^2
     emissivity = Float(0.5, iotype="in", desc='Emmissivity of the box') #
     waste_heat = Float(0.5, units='W', iotype='out', desc='Waste heat from the electronics')
-    temp_ambient = Float(305.0, units = 'K', iotype='in', desc='Average Temperature of the outside air') #305K = 89F
+    temp_ambient = Float(304.0, units = 'K', iotype='in', desc='Average Temperature of the outside air') #304K = 87.5F
     
     heater_power = Float(80, units='W', iotype='out', desc='Power draw of the heater')
     sb_constant = Float(0.00000005670373, iotype="in", units = 'W/((m**2)*(K**4))', desc='Stefan-Boltzmann Constant') #
+    Nu_multiplier = Float(1, iotype='in', desc='fudge factor to switch convection on and off')
 
     #--Outputs--
     temp_boundary = Float(321.0, units = 'K', iotype='in', desc='Average Temperature of the battery wall') 
@@ -107,85 +90,66 @@ class HeaterCalcs(Component):
         self.film_temp = (self.temp_ambient + self.temp_boundary)/2.
 
         #Convection Out (1 atm)
-        if(self.film_temp < 400):
-             self.GrDelTL3 = 41780000000000000000*((self.film_temp)**(-4.639)) #SI units (https://mdao.grc.nasa.gov/publications/Berton-Thesis.pdf pg51)
-        else:
-             self.GrDelTL3 = 4985000000000000000*((self.film_temp)**(-4.284)) #SI units (https://mdao.grc.nasa.gov/publications/Berton-Thesis.pdf pg51)
-        
-        #Prandtl Number
-        #Pr = viscous diffusion rate/ thermal diffusion rate = Cp * dyanamic viscosity / thermal conductivity
-        #Pr << 1 means thermal diffusivity dominates
-        #Pr >> 1 means momentum diffusivity dominates
-        if (self.film_temp < 400):
-            self.Pr = 1.23*(self.film_temp**(-0.09685)) #SI units (https://mdao.grc.nasa.gov/publications/Berton-Thesis.pdf pg51)
-        else:
-            self.Pr = 0.59*(self.film_temp**(0.0239))
-        #Grashof Number
-        #Relationship between buoyancy and viscosity
-        #Laminar = Gr < 10^8
-        #Turbulent = Gr > 10^9
-        self.Gr = self.GrDelTL3*abs(self.temp_boundary-self.film_temp)*(self.char_length) 
-        #Rayleigh Number 
-        #Buoyancy driven flow (natural convection)
-        self.Ra = self.Pr * self.Gr
-        if (self.Ra<=10**12): #valid in specific flow regime
-            self.Nu = ((0.6 + 0.387*self.Ra**(1./6.)/(1 + (0.559/self.Pr)**(9./16.))**(8./27.))**2) #3rd Ed. of Introduction to Heat Transfer by Incropera and DeWitt, equations (9.33) and (9.34) on page 465
-        else: 
-            self.Nu = 0.01
+        if(self.Nu_multiplier > 0):
+            if(self.film_temp < 400):
+                 self.GrDelTL3 = 41780000000000000000*((self.film_temp)**(-4.639)) #SI units (https://mdao.grc.nasa.gov/publications/Berton-Thesis.pdf pg51)
+            else:
+                 self.GrDelTL3 = 4985000000000000000*((self.film_temp)**(-4.284)) #SI units (https://mdao.grc.nasa.gov/publications/Berton-Thesis.pdf pg51)
+            
+            #Prandtl Number
+            #Pr = viscous diffusion rate/ thermal diffusion rate = Cp * dyanamic viscosity / thermal conductivity
+            #Pr << 1 means thermal diffusivity dominates
+            #Pr >> 1 means momentum diffusivity dominates
+            if (self.film_temp < 400):
+                self.Pr = 1.23*(self.film_temp**(-0.09685)) #SI units (https://mdao.grc.nasa.gov/publications/Berton-Thesis.pdf pg51)
+            else:
+                self.Pr = 0.59*(self.film_temp**(0.0239))
+            #Grashof Number
+            #Relationship between buoyancy and viscosity
+            #Laminar = Gr < 10^8
+            #Turbulent = Gr > 10^9
+            self.Gr = self.GrDelTL3*abs(self.temp_boundary-self.film_temp)*(self.char_length) 
+            #Rayleigh Number 
+            #Buoyancy driven flow (natural convection)
+            self.Ra = self.Pr * self.Gr
+            if (self.Ra<=10**12): #valid in specific flow regime
+                self.Nu = ((0.6 + 0.387*self.Ra**(1./6.)/(1 + (0.559/self.Pr)**(9./16.))**(8./27.))**2) #3rd Ed. of Introduction to Heat Transfer by Incropera and DeWitt, equations (9.33) and (9.34) on page 465
+            else: 
+                self.Nu = 0.01
 
-        #h = k*Nu/Characteristic Length
-        self.h = (self.k * self.Nu)/ self.char_length
-        #Convection Area = Surface Area
-        self.area_convection = (self.batt_area*5/6) 
-        #Determine heat radiated per square meter (Q)
-        self.q_per_area_nat_conv = self.h*(self.temp_boundary-self.temp_ambient)
-        #Determine total heat radiated over entire tube (Qtotal)
-        self.total_q_nat_conv = self.q_per_area_nat_conv * self.area_convection
+            #h = k*Nu/Characteristic Length
+            self.h = (self.k * self.Nu)/ self.char_length
+            #Convection Area = Surface Area
+            self.area_convection = (self.batt_area*5/6) 
+            #Determine heat radiated per square meter (Q)
+            self.q_per_area_nat_conv = self.h*(self.temp_boundary-self.temp_ambient)
+            #Determine total heat radiated over entire tube (Qtotal)
+            self.total_q_nat_conv = self.q_per_area_nat_conv * self.area_convection
+        else:
+            self.total_q_nat_conv = 0 #no convection at high altitude!
 
         self.q_total_out = self.q_rad_tot + self.total_q_nat_conv
 
-        self.ss_temp_residual = (self.q_total_out - self.q_total_in)/1e3
-
-
-#Cengal Y., Turner R., and Cimbala J., Fundamentals of
-#  Thermal-Fluid Sciences, McGraw-Hill Companies, 2008.
-#Table A-22 pg 1020
-temp_lookup = np.array([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, \
-                       60, 70, 80, 90, 100, 120, 140, 160, 180, \
-                        200, 250, 300])
-
-k_lookup = np.array([0.02364, .02401, .02439, .02476, .02514, \
-                     .02551, .02588, .02625, .02662, .02699, .02735, \
-                       .02808, .02881, .02953, .03024, .03095, .03235, \
-                        .03374, .03511, .03646, .03779, .04104, .04418])
-k_interp = interp1d(temp_lookup, k_lookup, fill_value=.02, bounds_error=False)
-
-nu_lookup = np.array([1.338, 1.382, 1.426, 1.470, 1.516, 1.562, 1.608,\
-                         1.655, 1.702, 1.75, 1.798, 1.896, 1.995, 2.097, \
-                          2.201, 2.306, 2.522, 2.745, 2.975, 3.212,\
-                          3.455, 4.091, 4.765])*(10**(-5))
-nu_interp = interp1d(nu_lookup, k_lookup, fill_value=1.3e-5, bounds_error=False)
-
-alpha_lookup = np.array([1.818, 1.880, 1.944, 2.009, 2.074, 2.141, 2.208,\
-                         2.277, 2.346, 2.416, 2.487, 2.632, 2.78, 2.931,\
-                         3.086, 3.243, 3.565, 3.898, 4.241, 4.592, \
-                         4.954, 5.89, 6.871])*(10**(-5))
-alpha_interp = interp1d(alpha_lookup, k_lookup, fill_value=1.8e-5, bounds_error=False)
-
-
-pr_lookup = np.array([.7362, .7350, .7336, .7323, .7309, .7296, .7282, \
-                      .7268, .7255, .7241, .7228, .7202, .7177, .7154, \
-                      .7132, .7111, .7073, .7041, .7014, .6992, \
-                      .6974, .6946, .6935])
-pr_interp = interp1d(pr_lookup, k_lookup, fill_value=.74, bounds_error=False)
+        self.ss_temp_residual = (self.q_total_out - self.q_total_in)/1e6
 
 
 if __name__ == '__main__' and __package__ is None:
 
-    he = HeaterEnvelope()
+    hs = HeaterSystem()
 
     #initial run to converge things
-    he.run()
+    hs.run()
 
-    print "Heater Temp: ", (1.8*(he.heater_sys.heater.temp_boundary-273.15))+32, "degF"
-    print "Heater Temp: ", (he.heater_sys.heater.temp_boundary-273), "degC"
+    print "------- Ground Temp -------"
+    print "Heater Temp: ", (1.8*(hs.heater.temp_boundary-273.15))+32, "degF"
+    print "Heater Temp: ", (hs.heater.temp_boundary-273), "degC"
+    print
+
+    hs.heater.Nu_multiplier = 0
+    hs.heater.temp_ambient = 213
+    hs.run()
+    print "------- Space Temp -------"
+    print "Heater Temp: ", (1.8*(hs.heater.temp_boundary-273.15))+32, "degF"
+    print "Heater Temp: ", (hs.heater.temp_boundary-273), "degC"
+
+
