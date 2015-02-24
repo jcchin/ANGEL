@@ -3,8 +3,8 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from math import log, pi, sqrt, e, isnan
-from matplotlib import pylab as plt
-from matplotlib import mlab as mlab
+#from matplotlib import pylab as plt
+#from matplotlib import mlab as mlab
 
 from openmdao.main.api import Assembly, Component
 from openmdao.lib.datatypes.api import Float, Bool, Str
@@ -36,12 +36,12 @@ class HeaterCalcs(Component):
 
     #--Inputs--
     desired_temp = Float(300, units='K', iotype='in')
-    batt_area = Float(.16,units='m**2',iotype='in', desc='battery surface area') #.16 = 250in^2
+    batt_area = Float(.145,units='m**2',iotype='in', desc='battery surface area') #.16 = 225in^2
     emissivity = Float(0.5, iotype="in", desc='Emmissivity of the box') #
     waste_heat = Float(0.5, units='W', iotype='out', desc='Waste heat from the electronics')
     temp_ambient = Float(304.0, units = 'K', iotype='in', desc='Average Temperature of the outside air') #304K = 87.5F
     
-    heater_power = Float(80, units='W', iotype='out', desc='Power draw of the heater')
+    heater_power = Float(14, units='W', iotype='out', desc='Power draw of the heater')
     sb_constant = Float(0.00000005670373, iotype="in", units = 'W/((m**2)*(K**4))', desc='Stefan-Boltzmann Constant') #
     Nu_multiplier = Float(1, iotype='in', desc='fudge factor to switch convection on and off')
 
@@ -108,7 +108,7 @@ class HeaterCalcs(Component):
             #Relationship between buoyancy and viscosity
             #Laminar = Gr < 10^8
             #Turbulent = Gr > 10^9
-            self.Gr = self.GrDelTL3*abs(self.temp_boundary-self.film_temp)*(self.char_length) 
+            self.Gr = self.GrDelTL3*abs(self.temp_boundary-self.film_temp)*((self.char_length)**3) 
             #Rayleigh Number 
             #Buoyancy driven flow (natural convection)
             self.Ra = self.Pr * self.Gr
