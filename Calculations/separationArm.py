@@ -50,7 +50,7 @@ class pendulum(Component):
         self.theta = self.theta_0
         self.t_step = (self.t_diff - self.t_0)/self.n
 
-        while(self.t_0 < self.t_diff): #march slowly in time. alpha = (-g/R)sin(theta)
+        while(self.t_0 < self.t_diff): #march slowly in time. alpha = (-gR/I)sin(theta)
             self.omega = self.omega + self.t_step*(-self.g*self.R_pendulum/self.inertia)*sin(self.theta) # update velocity
             self.theta = self.theta + self.omega*self.t_step # update position
             self.t_0 = self.t_0 + self.t_step # update time
@@ -76,7 +76,7 @@ class swing(Component):
     x_margin = Float(units='m', iotype='out', desc="x distance from drogue corner to sep at pin release", low=-1, high=1)
 
     k_theta_0 = Float(units='rad', iotype='out', desc="initial top angle", low=0, high=pi)
-    k = Float(units='m', iotype='out', desc="x distance from drogue corner to sep at clearance point",low=0, high=10)
+    k = Float(units='m', iotype='out', desc="x distance from drogue corner to pivot point",low=0, high=10)
     k_theta = Float(units='rad', iotype='out', desc="rotated top angle", low=-pi, high=pi)
 
     velocity = Float(units='m/s', iotype='out', desc="tangential velocity")
