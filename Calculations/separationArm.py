@@ -20,7 +20,7 @@ class pendulum(Component):
     bfs_width = Float(0.635, units='m', iotype='in', desc="BFS width (x direction)")
 
     # inputs
-    t_diff = Float(0.02, units='s', iotype='in', desc="time between pin releases")
+    t_diff = Float( units='s', iotype='in', desc="time between pin releases")
     g = Float(9.81, units='m/s**2', iotype='in', desc="gravity")
     n = Float(10000, iotype='in', desc="number of time steps")
     t_0 = Float(0, iotype='in', desc="number of time steps")
@@ -43,13 +43,14 @@ class pendulum(Component):
         self.R_pendulum = sqrt(self.bfs_width/2**2+self.bfs_height**2) #pythag theorem 
 
         #dynamics calcs
-        #self.inertia = self.R_pendulum**2 
-        self.inertia = ((self.bfs_width**2 + self.bfs_height**2)/12) + ((self.bfs_width/2)+self.bfs_height)
-        self.alpha = self.alpha_0
-        self.omega = self.omega_0
-        self.theta = self.theta_0
+        #self.inertia = self.R_pendulum**2  #idealized pendulum
+        self.inertia = ((self.bfs_width**2 + self.bfs_height**2)/12) + ((self.bfs_width/2)+self.bfs_height) #rough calc
+        self.alpha = self.alpha_0 #initial conditions = 0
+        self.omega = self.omega_0 #initial conditions = 0
+        self.theta = self.theta_0 #initial conditions = 0
         self.t_step = (self.t_diff - self.t_0)/self.n
 
+        #crude time marching, rather than RK4, 10000 time steps.
         while(self.t_0 < self.t_diff): #march slowly in time. alpha = (-gR/I)sin(theta)
             self.omega = self.omega + self.t_step*(-self.g*self.R_pendulum/self.inertia)*sin(self.theta) # update velocity
             self.theta = self.theta + self.omega*self.t_step # update position
@@ -90,9 +91,10 @@ class swing(Component):
         self.velocity = self.omega * self.R_pendulum
         self.x_veloc = self.velocity * sin(self.theta)
         self.y_veloc = self.velocity * cos(self.theta)
-        v = self.y_veloc
+        v = self.y_veloc #vertical velocity
 
         #distance BFS pivot corner to opposite drogue corner
+        #recalulate corner point relative to separation arm
         self.k_theta_0 = arctan((self.sep_length + self.agu_width) / self.agu_height)
         self.k = sqrt((self.sep_length + self.agu_width)**2 + (self.agu_height**2))
         self.k_theta = self.k_theta_0 + (self.theta_0-self.theta)
