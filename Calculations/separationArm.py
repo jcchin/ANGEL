@@ -28,7 +28,7 @@ class pendulum(Component):
     omega_0 = Float(0, units='rad/s**2', iotype='in', desc="initial angular velocity")
     
     # outputs
-    inertia = Float(units='kg*m**2',iotype='out',desc="moment of inertia")
+    inertia = Float(units='m**2',iotype='out',desc="moment of inertia divided by mass in kg")
     theta_0 = Float(units='rad', iotype='out', desc="initial angle", low=0, high=pi)
     R_pendulum = Float(units='m', iotype='out', desc="distance from CG to sep pin", low=0, high=4)
     t_step = Float(iotype='out', desc='time interval', low=0, high=0.1)
@@ -44,7 +44,8 @@ class pendulum(Component):
 
         #dynamics calcs
         #self.inertia = self.R_pendulum**2  #idealized pendulum
-        self.inertia = ((self.bfs_width**2 + self.bfs_height**2)/12) + ((self.bfs_width/2)+self.bfs_height) #rough calc
+        #self.inertia = ((self.bfs_width**2 + self.bfs_height**2)/12) + ((self.bfs_width/2)+self.bfs_height) #rough calc
+        self.inertia = 0.25 #see Tom Cressman's excel spreadsheet
         self.alpha = self.alpha_0 #initial conditions = 0
         self.omega = self.omega_0 #initial conditions = 0
         self.theta = self.theta_0 #initial conditions = 0
@@ -55,15 +56,14 @@ class pendulum(Component):
             self.omega = self.omega + self.t_step*(-self.g*self.R_pendulum/self.inertia)*sin(self.theta) # update velocity
             self.theta = self.theta + self.omega*self.t_step # update position
             self.t_0 = self.t_0 + self.t_step # update time
-            
-    
+               
 
 class swing(Component):
     #geometry
     agu_height = Float(0.4826, units='m', iotype='in', desc="AGU Height (y direction, pin to top of drogue)")
     agu_width = Float(0.4064, units='m', iotype='in', desc="AGU width (x direction)")
-    sep_length = Float(0.0381, units='m', iotype='in', desc="x-distance from pin to AGU")
-    bfs_width = Float(0.4826, units='m', iotype='in', desc="BFS width (x direction)")
+    #sep_length = Float(0.0381, units='m', iotype='in', desc="x-distance from pin to AGU")
+    bfs_width = Float(0.635, units='m', iotype='in', desc="BFS width (x direction)")
     #dynamic
     omega = Float(units='rad/s**2', iotype='in', desc="release angular velocity")
     theta = Float(units='rad', iotype='in', desc="release angle")
@@ -95,8 +95,8 @@ class swing(Component):
 
         #distance BFS pivot corner to opposite drogue corner
         #recalulate corner point relative to separation arm
-        self.k_theta_0 = arctan((self.sep_length + self.agu_width) / self.agu_height)
-        self.k = sqrt((self.sep_length + self.agu_width)**2 + (self.agu_height**2))
+        self.k_theta_0 = arctan(((self.bfs_width/2) + (self.agu_width/2)) / self.agu_height)
+        self.k = sqrt(((self.bfs_width/2) + (self.agu_width/2))**2 + (self.agu_height**2))
         self.k_theta = self.k_theta_0 + (self.theta_0-self.theta)
 
         self.x_margin = self.bfs_width - self.k*sin(self.k_theta)
@@ -132,7 +132,9 @@ if __name__ == '__main__' and __package__ is None:
 
     #top = system()
     pen = pendulum()
-    pen.t_diff = 0.064
+    pen.t_diff = 0.0642 #modify here 0.0642 original
+    bfs_width = 0.635 #modify here 0.635 original
+    pen.bfs_width = bfs_width
 
     #initial run to converge things
     pen.run()
@@ -150,6 +152,7 @@ if __name__ == '__main__' and __package__ is None:
     sw.theta = pen.theta
     sw.omega = pen.omega
     sw.R_pendulum = pen.R_pendulum
+    sw.bfs_width = bfs_width
     sw.run()
 
     print "k_theta_0", sw.k_theta_0, 'rad'
