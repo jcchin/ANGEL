@@ -130,7 +130,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #top = system()
     pen = pendulum()
-    pen.t_diff = 0.075
+    pen.t_diff = 0.064
 
     #initial run to converge things
     pen.run()
@@ -143,7 +143,7 @@ if __name__ == '__main__' and __package__ is None:
     print "inertia/m:", pen.inertia
 
     sw = swing()
-    sw.sep_length = 0.03
+    #sw.sep_length = 0.03
     sw.theta_0 = pen.theta_0
     sw.theta = pen.theta
     sw.omega = pen.omega
