@@ -100,7 +100,7 @@ class swing(Component):
         self.k_theta = self.k_theta_0 + (self.theta_0-self.theta)
 
         self.x_margin = self.bfs_width - self.k*sin(self.k_theta)
-        self.y_margin = self.k*sin(self.k_theta)
+        self.y_margin = self.k*cos(self.k_theta)
 
         # free fall h = 1/2*g*t^2 + v_0t, solve for t, quadratic formula
         #self.t_drop = v-sqrt(v**2-(2*self.g*self.y_margin)/self.g)
@@ -108,7 +108,7 @@ class swing(Component):
 
         self.x_dist =  (self.x_veloc * self.t_drop) + self.x_margin
 
-class system(Assembly):
+class system(Assembly): #not currently used, could be used if we exand the calcs...
 
     def configure(self): 
         #Add Components
@@ -132,7 +132,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #top = system()
     pen = pendulum()
-    pen.t_diff = 0.0642 #modify here 0.0642 original
+    pen.t_diff = 0.068 #modify here 0.0642 original
     bfs_width = 0.635 #modify here 0.635 original
     pen.bfs_width = bfs_width
 
