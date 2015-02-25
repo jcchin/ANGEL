@@ -71,7 +71,7 @@ k = sqrt(((bfs_width/2) + (agu_width/2))^2 + (agu_height^2));
 k_theta = k_theta_0 + (theta_0-theta);
 
 x_margin = bfs_width - k*sin(k_theta);
-y_margin = k*sin(k_theta);
+y_margin = k*cos(k_theta);
 
 %# free fall h = 1/2*g*t^2 + v_0t, solve for t, quadratic formula
 %#t_drop = v-sqrt(v**2-(2*g*y_margin)/g)
