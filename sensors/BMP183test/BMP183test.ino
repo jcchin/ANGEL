@@ -122,6 +122,9 @@ void setup(void)
   /* Display some basic information on this sensor */
     displaySensorDetails();
   }
+  Serial.println();
+  Serial.println("----BMP183----------|----BMP180----------|-1Wi(DS)-|--SPI_K--|---A_K--|");
+  Serial.println("--Press--Temp--Alt--|-Press---Temp---Alt--|--Temp--|--Temp---|--Temp--|");
 }
 
 /**************************************************************************/
@@ -132,12 +135,17 @@ void setup(void)
 /**************************************************************************/
 void loop(void) 
 {
-    bmp183_loop(); //SPI
-    bmp180_loop(); //I2C
-    DS18B20_loop(); //1-wire waterproof temp
-    max31855_loop(); //SPI thermocouple
-    AD8495_loop(); //Analog thermocouple
-    Serial.println("----------------");
-    delay(1000);
+    long data[9]={0, 0, 0, 0, 0, 0, 0, 0, 0};
+    bmp183_loop(data); //SPI
+    bmp180_loop(data); //I2C
+    //DS18B20_loop(data); //1-wire waterproof temp
+    max31855_loop(data); //SPI thermocouple
+    AD8495_loop(data); //Analog thermocouple
+    Serial.print("---");Serial.print(data[0]);Serial.print("----");Serial.print(data[1]);Serial.print("---");Serial.print(data[2]);Serial.print("---|");
+    Serial.print("-");Serial.print(data[3]);Serial.print("------");Serial.print(data[4]);Serial.print("------");Serial.print(data[5]);Serial.print("---|");
+    Serial.print("---");Serial.print(data[6]);Serial.print("---|---");Serial.print(data[7]);Serial.print("---|---");Serial.print(data[8]);Serial.print("---|");
+    
+    Serial.println();
+    //delay(500);
     
 }

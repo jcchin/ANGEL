@@ -1,4 +1,4 @@
-void DS18B20_loop(void)
+void DS18B20_loop(long *pdata)
 {
   byte i;
   byte present = 0;
@@ -17,8 +17,8 @@ void DS18B20_loop(void)
   
   //Serial.print("ROM =");
   for( i = 0; i < 8; i++) {
-    Serial.write(' ');
-    Serial.print(addr[i], HEX);
+    //Serial.write(' ');
+    //Serial.print(addr[i], HEX);
   }
 
   if (OneWire::crc8(addr, 7) != addr[7]) {
@@ -28,7 +28,7 @@ void DS18B20_loop(void)
   Serial.println();
  
   // the first ROM byte indicates which chip
-  switch (addr[0]) {
+  /*switch (addr[0]) {
     case 0x10:
       Serial.println("  Chip = DS18S20");  // or old DS1820
       type_s = 1;
@@ -44,7 +44,7 @@ void DS18B20_loop(void)
     default:
       Serial.println("Device is not a DS18x20 family device.");
       return;
-  } 
+  } */
 
   ds.reset();
   ds.select(addr);
@@ -57,18 +57,18 @@ void DS18B20_loop(void)
   ds.select(addr);    
   ds.write(0xBE);         // Read Scratchpad
 
-  Serial.print("  Data = ");
+  /*Serial.print("  Data = ");
   Serial.print(present, HEX);
-  Serial.print(" ");
+  Serial.print(" ");*/
   for ( i = 0; i < 9; i++) {           // we need 9 bytes
     data[i] = ds.read();
-    Serial.print(data[i], HEX);
-    Serial.print(" ");
+    //Serial.print(data[i], HEX);
+    //Serial.print(" ");
   }
-  Serial.print(" CRC=");
+  /*Serial.print(" CRC=");
   Serial.print(OneWire::crc8(data, 8), HEX);
   Serial.println();
-
+  */
   // Convert the data to actual temperature
   // because the result is a 16 bit signed integer, it should
   // be stored to an "int16_t" type, which is always 16 bits
@@ -90,9 +90,11 @@ void DS18B20_loop(void)
   }
   celsius = (float)raw / 16.0;
   fahrenheit = celsius * 1.8 + 32.0;
-  Serial.print("  Temperature = ");
+  /*Serial.print("  Temperature = ");
   Serial.print(celsius);
   Serial.print(" Celsius, ");
   Serial.print(fahrenheit);
   Serial.println(" Fahrenheit");
+  */
+  pdata[6] = celsius;
 }

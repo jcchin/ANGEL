@@ -1,19 +1,21 @@
-void bmp183_loop(void)
+void bmp183_loop(long *pdata)
 {
   /* Display atmospheric pressue in Pascals */
-    Serial.print("183 Pressure:    ");
+    /*Serial.print("183 Pressure:    ");
     Serial.print(bmp183.getPressure());
     Serial.print(" Pascals / ");
     Serial.print(bmp183.getPressure() / 100);
     Serial.println(" millibar (hPa)");
-
+    */
+    pdata[0]= bmp183.getPressure()/100;
     /* First we get the current temperature from the BMP085 */
-    float temperature;
+    /*float temperature;
     temperature = bmp183.getTemperature();
     Serial.print("Temperature: ");
     Serial.print(temperature);
     Serial.println(" C");
-    
+    */
+    pdata[1]= bmp183.getTemperature();
     /* Calculating altitude with reasonable accuracy requires pressure    *
      * sea level pressure for your position at the moment the data is     *
      * converted. If you don't have these values, a 'generic' value of    *
@@ -32,7 +34,7 @@ void bmp183_loop(void)
     /* Then convert the atmospheric pressure, SLP and temp to altitude    */
     /* Update this next line with the current SLP for better results      */
     float seaLevelPressure = SENSORS_PRESSURE_SEALEVELHPA; // should be ~1000
-    Serial.print("Sea level pressure: "); 
+    /*Serial.print("Sea level pressure: "); 
     Serial.print(SENSORS_PRESSURE_SEALEVELHPA);
     Serial.println(" millibar/hPa");
     
@@ -40,6 +42,8 @@ void bmp183_loop(void)
     Serial.print(bmp183.getAltitude(seaLevelPressure)); 
     Serial.println(" m");
     Serial.println("");
+    */
+    pdata[2]= bmp183.getAltitude(seaLevelPressure);
 
   
 }

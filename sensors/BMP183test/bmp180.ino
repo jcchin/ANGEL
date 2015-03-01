@@ -1,4 +1,4 @@
-void bmp180_loop(void)
+void bmp180_loop(long *pdata)
 {
     /* Get a new sensor event */ 
   sensors_event_t event;
@@ -8,10 +8,11 @@ void bmp180_loop(void)
   if (event.pressure)
   {
     /* Display atmospheric pressue in hPa */
-    Serial.print("180 Pressure:    ");
+    /*Serial.print("180 Pressure:    ");
     Serial.print(event.pressure);
     Serial.println(" hPa");
-    
+    */
+    pdata[3] = event.pressure;
     /* Calculating altitude with reasonable accuracy requires pressure    *
      * sea level pressure for your position at the moment the data is     *
      * converted, as well as the ambient temperature in degress           *
@@ -30,18 +31,28 @@ void bmp180_loop(void)
     /* First we get the current temperature from the BMP085 */
     float temperature;
     bmp180.getTemperature(&temperature);
-    Serial.print("Temperature: ");
+    /*Serial.print("Temperature: ");
     Serial.print(temperature);
     Serial.println(" C");
-
+    */
+    if (temperature > 99){
+      pdata[5] = temperature;
+    }
+    else
+    {
+      pdata[5] = 99;
+    }
     /* Then convert the atmospheric pressure, and SLP to altitude         */
     /* Update this next line with the current SLP for better results      */
     float seaLevelPressure = SENSORS_PRESSURE_SEALEVELHPA;
-    Serial.print("Altitude:    "); 
+    /*Serial.print("Altitude:    "); 
     Serial.print(bmp180.pressureToAltitude(seaLevelPressure,
                                         event.pressure)); 
     Serial.println(" m");
     Serial.println("");
+    */
+    
+    pdata[5] = bmp180.pressureToAltitude(seaLevelPressure,event.pressure);
   }
   else
   {

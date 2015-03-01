@@ -132,7 +132,7 @@ if __name__ == '__main__' and __package__ is None:
 
     #top = system()
     pen = pendulum()
-    pen.t_diff = 0.068 #modify here 0.0642 original
+    pen.t_diff = 0.3 #modify here 0.068 original
     bfs_width = 0.635 #modify here 0.635 original
     pen.bfs_width = bfs_width
 
