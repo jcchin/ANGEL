@@ -23,13 +23,13 @@ class MotionEQ(Component):
 
     g = Float(9.81, units='m/s**2', iotype='in', desc='gravity')
     t_step = Float(0.01, iotype='in', desc='time step', low=0, high=0.1)
-    max_alt = Float(30000, units='m',iotype='in', desc='starting altitude')
+    max_alt = Float(36576, units='m',iotype='in', desc='starting altitude')
 
     # http://www.engineeringtoolbox.com/standard-atmosphere-d_604.html
     rho_table = np.array([12.25, 11.12, 10.07,9.093,8.194,7.364,6.601,5.9,5.258, \
-        4.671,4.135,1.948,0.8891,0.4008,0.1841])
+        4.671,4.135,1.948,0.8891,0.4008,0.1841,0.03996])
     alt_table = np.array([0.0,1000.,2000.,3000.,4000.,5000.,6000.,7000.,8000.,9000., \
-        10000.,15000.,20000.,25000.,30000.])
+        10000.,15000.,20000.,25000.,30000., 40000.])
     temp_table = np.array([15,8.5,2,-4.49,-10.98,-17.47,-23.96,-30.45,-36.94,-43.42,-49.9,-56.5,-51.6,-46.64])
 
     alt2_table = np.array([0,11000.,20000.,30000.])
