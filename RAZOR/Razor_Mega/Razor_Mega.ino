@@ -2,11 +2,26 @@
 #include <Wire.h>
 //SD libraries
 #include <SD.h>
+//SPI
 #include <SPI.h>
+//Baro
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP183.h>
+#include <Adafruit_BMP085_U.h>
 //GPS libraries
 #include <Adafruit_GPS.h>
 #include <SoftwareSerial.h> //not actually used, keeps Ada_GPS from barking
 #include <avr/sleep.h>
+
+#define BMP183_CLK  38
+#define BMP183_SDO  36  // AKA MISO
+#define BMP183_SDI  34  // AKA MOSI
+// You'll also need a chip-select pin, use any pin!
+#define BMP183_CS   32
+#define SENSORS_PRESSURE_SEALEVELHPA 1000
+Adafruit_BMP183 bmp183 = Adafruit_BMP183(BMP183_CLK, BMP183_SDO, BMP183_SDI, BMP183_CS);
+Adafruit_BMP085_Unified bmp180 = Adafruit_BMP085_Unified(10085);
+
 #include "RTClib.h" //RTC
 #define ECHO_TO_SD  1 // echo data to SDcard
 #define PRINT_ALT   0 //print alt (can't if using processing)
@@ -37,9 +52,9 @@ boolean r1,r2,r3,r4,r5,r6;
 uint32_t timer1 = millis();
 //rotate led pins
 int L0 = 0; int L1 = 0; int L2 = 0; //disabled
-int L3 = 36; int L4 = 40; int L5 = 44;
+int L3 = 0; int L4 = 40; int L5 = 44; //**
 //status LED pins (red)
-int alt_status = 24; int gps_status = 28; int temp_status = 32;
+int alt_status = 24; int gps_status = 28; int temp_status = 0;//**
 //TMP36 Pin Variables
 int tmp36 = 0; //the analog pin the TMP36's Vout (sense) pin is connected to
 int reading;   //the resolution is 10 mV / degree centigrade with a
@@ -73,8 +88,11 @@ void setup()
   //altimeter_setup();
   delay(500); //give the IMU time to start-up
   Accel_setup();
+  bmp_setup();
+  
   logfile.println( \
   "yaw, pitch, roll, rawX (accel), rawY, rawZ, tmp36, " \
+  "3P, 3T, 3A, 0P, 0T, 0A, " \
   "Time (HH:MM:SS), Date (MM/DD/YY)," 
   "GPS Fix, Fix Quality, Latitude, Longitude, " \
   "knots, altitude, # of satellite fixes");
@@ -108,11 +126,19 @@ void loop()
   GPS_loop();
   Accel_loop();
   tmp36_loop(); //in Altimeter.ino
+  float data[9]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  
+  bmp180_loop(data); //I2C
+  bmp183_loop(data); //SPI
+  // Serial.print("---");Serial.print(data[0]);Serial.print("----");Serial.print(data[1]);Serial.print("---");Serial.print(data[2]);Serial.print("---|");
+  //  Serial.print("-");Serial.print(data[3]);Serial.print("------");Serial.print(data[4]);Serial.print("------");Serial.print(data[5]);Serial.print("---|");
   // approximately every 0.5 second or so, print out the current stats
   if (millis() - timer1 > 100) { 
     timer1 = millis(); // reset the timer
     
     #if ECHO_TO_SD
+      logfile.print(data[0]);logfile.print(",");logfile.print(data[1]);logfile.print(",");logfile.print(data[2]);logfile.print(",");
+      logfile.print(data[3]);logfile.print(",");logfile.print(data[4]);logfile.print(",");logfile.print(data[5]);logfile.print(",");
       logfile.print(GPS.hour, DEC); logfile.print(':');
       logfile.print(GPS.minute, DEC); logfile.print(':');
       logfile.print(GPS.seconds, DEC); logfile.print('.');

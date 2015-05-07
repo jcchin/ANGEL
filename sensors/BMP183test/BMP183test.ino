@@ -8,12 +8,11 @@
 // On UNO, Clock is #13, SDO/MISO is #12 and SDI/MOSI is #11
 
 // You can also use software SPI and define your own pins!
-#define BMP183_CLK  13
-#define BMP183_SDO  12  // AKA MISO
-#define BMP183_SDI  11  // AKA MOSI
-
+#define BMP183_CLK  38
+#define BMP183_SDO  36  // AKA MISO
+#define BMP183_SDI  34  // AKA MOSI
 // You'll also need a chip-select pin, use any pin!
-#define BMP183_CS   10
+#define BMP183_CS   32
 
 #define SENSORS_PRESSURE_SEALEVELHPA 1000
 

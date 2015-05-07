@@ -49,5 +49,5 @@ rotate([0,0,180])translate([-115, -75, -9.5])foot();
 }
 
 translate([0, 0, 50])caseTop();
-include<case_bottom.scad>
+//include<case_bottom.scad>
 
