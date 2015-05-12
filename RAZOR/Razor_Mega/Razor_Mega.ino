@@ -8,6 +8,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP183.h>
 #include <Adafruit_BMP085_U.h>
+#include <Adafruit_MAX31855.h>
 //GPS libraries
 #include <Adafruit_GPS.h>
 #include <SoftwareSerial.h> //not actually used, keeps Ada_GPS from barking
@@ -16,6 +17,24 @@
 #define BMP183_CLK  38
 #define BMP183_SDO  36  // AKA MISO
 #define BMP183_SDI  34  // AKA MOSI
+
+#define MAX1_DO 26
+#define MAX1_CS 28
+#define MAX1_CLK 30
+Adafruit_MAX31855 thermocouple1(MAX1_CLK, MAX1_CS, MAX1_DO);
+
+#define MAX2_PWR 37 
+#define MAX2_DO 43
+#define MAX2_CS 45
+#define MAX2_CLK 47
+Adafruit_MAX31855 thermocouple2(MAX2_CLK, MAX2_CS, MAX2_DO);
+
+#define MAX3_PWR 2 
+#define MAX3_GND 3 
+#define MAX3_DO 4
+#define MAX3_CS 5
+#define MAX3_CLK 6
+Adafruit_MAX31855 thermocouple3(MAX3_CLK, MAX3_CS, MAX3_DO);
 // You'll also need a chip-select pin, use any pin!
 #define BMP183_CS   32
 #define SENSORS_PRESSURE_SEALEVELHPA 1000
@@ -54,7 +73,7 @@ uint32_t timer1 = millis();
 int L0 = 0; int L1 = 0; int L2 = 0; //disabled
 int L3 = 0; int L4 = 40; int L5 = 44; //**
 //status LED pins (red)
-int alt_status = 24; int gps_status = 28; int temp_status = 0;//**
+int alt_status = 0; int gps_status = 0; int temp_status = 0;//**
 //TMP36 Pin Variables
 int tmp36 = 0; //the analog pin the TMP36's Vout (sense) pin is connected to
 int reading;   //the resolution is 10 mV / degree centigrade with a
@@ -97,12 +116,18 @@ void setup()
   "GPS Fix, Fix Quality, Latitude, Longitude, " \
   "knots, altitude, # of satellite fixes");
   
-  pinMode(alt_status, OUTPUT);
-  pinMode(gps_status, OUTPUT);
-  pinMode(temp_status, OUTPUT);
-  pinMode(redPin, OUTPUT);
-  pinMode(greenPin, OUTPUT);
-  pinMode(bluePin, OUTPUT); 
+  
+  pinMode(MAX2_PWR, OUTPUT);
+  pinMode(MAX3_PWR, OUTPUT);
+  pinMode(MAX3_GND, OUTPUT);
+  //pinMode(alt_status, OUTPUT);
+  //pinMode(gps_status, OUTPUT);
+  //pinMode(temp_status, OUTPUT);
+  //pinMode(redPin, OUTPUT);
+  //pinMode(greenPin, OUTPUT);
+  //pinMode(bluePin, OUTPUT); 
+  
+  
   // ARef set externally (for TMP36)
   analogReference(EXTERNAL); 
 }
@@ -122,10 +147,13 @@ void setColor(int red, int green, int blue)
 /************************************************************/
 void loop()
 {
-  
+  digitalWrite(MAX2_PWR, HIGH);
+  digitalWrite(MAX3_PWR, HIGH);
+  digitalWrite(MAX3_GND, LOW);
   GPS_loop();
   Accel_loop();
-  tmp36_loop(); //in Altimeter.ino
+  //tmp36_loop(); //in Altimeter.ino
+  max31855_loop();
   float data[9]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   
   bmp180_loop(data); //I2C
