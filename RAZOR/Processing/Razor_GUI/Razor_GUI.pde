@@ -2,7 +2,7 @@ import processing.opengl.*;
 import processing.serial.*;
 
 final static int SERIAL_PORT_NUM = 5;
-final static int SERIAL_PORT_BAUD_RATE = 115200;
+final static int SERIAL_PORT_BAUD_RATE = 57600;//115200;
 
 float yaw = 0.0f;
 float pitch = 0.0f;

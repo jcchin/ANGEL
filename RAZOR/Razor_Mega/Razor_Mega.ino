@@ -112,7 +112,8 @@ void setup()
   logfile.println( \
   "yaw, pitch, roll, rawX (accel), rawY, rawZ, tmp36, " \
   "3P, 3T, 3A, 0P, 0T, 0A, " \
-  "Time (HH:MM:SS), Date (MM/DD/YY)," 
+  "T1, T2, T3, " \
+  "Time (HH:MM:SS), Date (MM/DD/YY)," \
   "GPS Fix, Fix Quality, Latitude, Longitude, " \
   "knots, altitude, # of satellite fixes");
   
@@ -153,9 +154,10 @@ void loop()
   GPS_loop();
   Accel_loop();
   //tmp36_loop(); //in Altimeter.ino
-  max31855_loop();
-  float data[9]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   
+  float data[9]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  float dataT[3]={0.0, 0.0, 0.0};
+  max31855_loop(dataT);
   bmp180_loop(data); //I2C
   bmp183_loop(data); //SPI
   // Serial.print("---");Serial.print(data[0]);Serial.print("----");Serial.print(data[1]);Serial.print("---");Serial.print(data[2]);Serial.print("---|");
@@ -167,6 +169,7 @@ void loop()
     #if ECHO_TO_SD
       logfile.print(data[0]);logfile.print(",");logfile.print(data[1]);logfile.print(",");logfile.print(data[2]);logfile.print(",");
       logfile.print(data[3]);logfile.print(",");logfile.print(data[4]);logfile.print(",");logfile.print(data[5]);logfile.print(",");
+      logfile.print(dataT[0]);logfile.print(",");logfile.print(dataT[1]);logfile.print(",");logfile.print(dataT[2]);logfile.print(",");
       logfile.print(GPS.hour, DEC); logfile.print(':');
       logfile.print(GPS.minute, DEC); logfile.print(':');
       logfile.print(GPS.seconds, DEC); logfile.print('.');
