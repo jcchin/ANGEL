@@ -2,6 +2,7 @@
 void GPS_setup() { 
   
   Serial.println("\r\nUltimate GPSlogger Shield");
+  
   pinMode(ledPin, OUTPUT);
 
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // uncomment to turn on RMC (recommended minimum) and GGA (fix data) including altitude
@@ -17,6 +18,7 @@ void GPS_setup() {
   useInterrupt(true);
 
   delay(1000);
+  
   // Ask for firmware version
   gpsSerial.println(PMTK_Q_RELEASE);
   

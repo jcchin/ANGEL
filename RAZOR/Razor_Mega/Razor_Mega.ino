@@ -18,17 +18,18 @@
 #define BMP183_SDO  36  // AKA MISO
 #define BMP183_SDI  34  // AKA MOSI
 
-#define MAX1_DO 26
+//courner one
+#define MAX1_DO 26 //no power pin needed, sitting on 5v rail
 #define MAX1_CS 28
 #define MAX1_CLK 30
 Adafruit_MAX31855 thermocouple1(MAX1_CLK, MAX1_CS, MAX1_DO);
-
+//middle lower
 #define MAX2_PWR 37 
 #define MAX2_DO 43
 #define MAX2_CS 45
 #define MAX2_CLK 47
 Adafruit_MAX31855 thermocouple2(MAX2_CLK, MAX2_CS, MAX2_DO);
-
+//sitting on top
 #define MAX3_PWR 2 
 #define MAX3_GND 3 
 #define MAX3_DO 4
@@ -70,18 +71,18 @@ float yaw, pitch, roll, rawX, rawY, rawZ;
 boolean r1,r2,r3,r4,r5,r6;
 uint32_t timer1 = millis();
 //rotate led pins
-int L0 = 0; int L1 = 0; int L2 = 0; //disabled
+int L0 = 0; int L1 = 0; int L2 = 0; //disabled //?
 int L3 = 0; int L4 = 40; int L5 = 44; //**
 //status LED pins (red)
 int alt_status = 0; int gps_status = 0; int temp_status = 0;//**
-//TMP36 Pin Variables
+//TMP36 Pin Variables //?
 int tmp36 = 0; //the analog pin the TMP36's Vout (sense) pin is connected to
 int reading;   //the resolution is 10 mV / degree centigrade with a
 float voltage; //500 mV offset to allow for negative temperatures
 float temperatureF;
 #define aref_voltage 3.3 // we tie 3.3V to ARef
 //tri LED pins
-int redPin = 46;
+int redPin = 46; //?
 int greenPin = 48;
 int bluePin = 50;
 // this keeps track of whether we're using the interrupt
@@ -121,16 +122,9 @@ void setup()
   pinMode(MAX2_PWR, OUTPUT);
   pinMode(MAX3_PWR, OUTPUT);
   pinMode(MAX3_GND, OUTPUT);
-  //pinMode(alt_status, OUTPUT);
-  //pinMode(gps_status, OUTPUT);
-  //pinMode(temp_status, OUTPUT);
-  //pinMode(redPin, OUTPUT);
-  //pinMode(greenPin, OUTPUT);
-  //pinMode(bluePin, OUTPUT); 
-  
   
   // ARef set externally (for TMP36)
-  analogReference(EXTERNAL); 
+  analogReference(EXTERNAL);  //?
 }
 void setColor(int red, int green, int blue)
 {
@@ -153,7 +147,7 @@ void loop()
   digitalWrite(MAX3_GND, LOW);
   GPS_loop();
   Accel_loop();
-  //tmp36_loop(); //in Altimeter.ino
+  //tmp36_loop(); //in Altimeter.ino //?
   
   float data[9]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   float dataT[3]={0.0, 0.0, 0.0};
@@ -198,9 +192,9 @@ void loop()
     #endif
   }
   
-  //status pins
-  (pressure < -900) ? digitalWrite(alt_status, HIGH) : digitalWrite(alt_status, LOW);
-  (temperatureF < -100) ? digitalWrite(temp_status, HIGH) : digitalWrite(temp_status, LOW);
+  //status pins //?
+  //(pressure < -900) ? digitalWrite(alt_status, HIGH) : digitalWrite(alt_status, LOW);
+  //(temperatureF < -100) ? digitalWrite(temp_status, HIGH) : digitalWrite(temp_status, LOW);
 }
 
 

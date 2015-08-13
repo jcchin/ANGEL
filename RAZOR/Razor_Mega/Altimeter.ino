@@ -10,7 +10,7 @@ void altimeter_setup(){
   myPressure.enableEventFlags(); // Enable all three pressure and temp event flags
 }
 
-void tmp36_loop()
+void tmp36_loop() //?
 {
   //getting the voltage reading from the temperature sensor
   reading = analogRead(tmp36);
