@@ -9,8 +9,8 @@ void max31855_loop(){
       Serial.println("Something wrong with thermocouple1!");
       pdata6=0.0;
     } else {
-      //Serial.print("C1 = "); 
-      //Serial.println(c);
+      Serial.print("C1 = "); 
+      Serial.println(c);
       pdata6=c;
     }
     
@@ -22,8 +22,8 @@ void max31855_loop(){
       Serial.println("Something wrong with thermocouple2!");
       pdata7=0.0;
     } else {
-      //Serial.print("C2 = "); 
-      //Serial.println(c2);
+      Serial.print("C2 = "); 
+      Serial.println(c2);
       pdata7=c2;
     }
     
@@ -35,8 +35,8 @@ void max31855_loop(){
       Serial.println("Something wrong with thermocouple3!");
       pdata8=0.0;
     } else {
-      //Serial.print("C3 = "); 
-      //Serial.println(c3);
+      Serial.print("C3 = "); 
+      Serial.println(c3);
       pdata8=c3;
     }
 

@@ -1,11 +1,11 @@
 void Accel_setup() {
   initIMU();
-  pinMode(L0, OUTPUT); //blink LED
+  /*pinMode(L0, OUTPUT); //blink LED
   pinMode(L1, OUTPUT); //blink LED
   pinMode(L2, OUTPUT); //blink LED
   pinMode(L3, OUTPUT); //blink LED
   pinMode(L4, OUTPUT); //blink LED
-  pinMode(L5, OUTPUT); //blink LED
+  pinMode(L5, OUTPUT); //blink LED*/
   
 }
 
@@ -133,4 +133,5 @@ void Accel_loop(){
         logfile.flush();
       #endif
   }
+  Serial.println(yaw);
 }

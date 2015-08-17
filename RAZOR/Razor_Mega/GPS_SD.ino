@@ -3,15 +3,9 @@ void GPS_setup() {
   
   Serial.println("\r\nUltimate GPSlogger Shield");
   
-  pinMode(ledPin, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(13, OUTPUT);
 
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // uncomment to turn on RMC (recommended minimum) and GGA (fix data) including altitude
-  // GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY); // uncomment to turn on only the "minimum recommended" data
-  // For logging data, we don't suggest using anything but either RMC only or RMC+GGA
-  // to keep the log files at a reasonable size
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);   //// Set the update rate: 1 or 5 Hz
-  GPS.sendCommand(PGCMD_NOANTENNA);// Turn off updates on antenna status, if the firmware permits it
-  
   // the nice thing about this code is you can have a timer0 interrupt go off
   // every 1 millisecond, and read data from the GPS for you. that makes the
   // loop code a heck of a lot easier!
@@ -20,14 +14,14 @@ void GPS_setup() {
   delay(1000);
   
   // Ask for firmware version
-  gpsSerial.println(PMTK_Q_RELEASE);
+  Serial.println(PMTK_Q_RELEASE);
   
   #if ECHO_TO_SD
     // initialize the SD card
     Serial.println("Initializing SD card...");
     // make sure that the default chip select pin is set to
     // output, even if you don't use it:
-    pinMode(10, OUTPUT);
+    
     
     // see if the card is present and can be initialized:
     if (!SD.begin(10, 11, 12, 13)) {
@@ -44,10 +38,11 @@ void GPS_setup() {
       filename[5] = '0' + i%10;
       // create if does not exist, do not open existing, write, sync after write
       if (! SD.exists(filename)) { // only open a new file if it doesn't exist
-        logfile = SD.open(filename, O_CREAT | O_WRITE); 
+        //logfile = SD.open(filename, O_CREAT | O_WRITE); 
         break;
       }
     }
+    logfile = SD.open(filename, FILE_WRITE);
     if(! logfile ) {
       Serial.print("Couldnt create "); Serial.println(filename);
       error(3);
@@ -56,6 +51,15 @@ void GPS_setup() {
   #endif  //ECHO_TO_SD 
     
   Serial.println("Ready!");
+  Serial3.begin(9600); //init the Serial3 port to get data from the GPS
+  
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // uncomment to turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  // GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY); // uncomment to turn on only the "minimum recommended" data
+  // For logging data, we don't suggest using anything but either RMC only or RMC+GGA
+  // to keep the log files at a reasonable size
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_5HZ);   //// Set the update rate: 1 or 5 Hz
+  GPS.sendCommand(PGCMD_NOANTENNA);// Turn off updates on antenna status, if the firmware permits it
+  
 } //end GPS_setup()
 
 void GPS_loop() {
@@ -78,42 +82,27 @@ void GPS_loop() {
         
     if (!GPS.parse(GPS.lastNMEA()))   // this also sets the newNMEAreceived() flag to false
       return;  // we can fail to parse a sentence in which case we should just wait for another
-  }
   
-  // if millis() or timer wraps around, we'll just reset it
-  if (timer1 > millis())  timer1 = millis();
 
-  
-}/*
     // Sentence parsed! 
-    Serial.println("OK");
+    //Serial.println("OK");
     if (LOG_FIXONLY && !GPS.fix) {
         Serial.print("No Fix");
         return;
     }
-
-    // Rad. lets log it!
-    Serial.println("Log");
     
-    //char *altptr;
-    //sprintf(altptr, ", %f", GPS.altitude);
     char *stringptr = GPS.lastNMEA();
-    
-    //char *totalLine = (char *)malloc(strlen(altptr) + strlen(stringptr) + 1);
-    //if (totalLine != NULL)
-    //{
-    //   strcpy(totalLine, altptr);
-    //   strcat(totalLine, stringptr);
-    //}
-
     uint8_t stringsize = strlen(stringptr);
-    if (stringsize != logfile.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
+    if (stringsize != Serial.write((uint8_t *)stringptr, stringsize))    //write the string to the SD file
       error(4);
     if (strstr(stringptr, "RMC"))   logfile.flush();
-    
-  } //end GPS.newNMEAreceived()
-}*/
+    //Serial.println();
+  }
+}
 
+
+
+//------helper functions -----
 // read a Hex value and return the decimal equivalent
 uint8_t parseHex(char c) {
   if (c < '0')
@@ -125,6 +114,7 @@ uint8_t parseHex(char c) {
   if (c <= 'F')
     return (c - 'A')+10;
 }
+
 
 // blink out an error code
 void error(uint8_t errno) {

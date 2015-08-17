@@ -4,7 +4,7 @@
 #include <SD.h>
 //SPI
 #include <SPI.h>
-//Barometers and Thermocouple
+//Baro
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP183.h>
 #include <Adafruit_BMP085_U.h>
@@ -45,19 +45,16 @@ Adafruit_BMP085_Unified bmp180 = Adafruit_BMP085_Unified(10085);
 #include "RTClib.h" //RTC
 #define ECHO_TO_SD  1 // echo data to SDcard
 #define PRINT_ALT   0 //print alt (can't if using processing)
-uint32_t timer1 = millis(); //sd timer
 #define GPSECHO  false //false = no echo to Serial, true = raw GPS sentences for debugging
 #define LOG_FIXONLY false //false = always log, true = log only when GPS fix
 //GPS + Logging Stuff
 RTC_DS1307 RTC; // define the Real Time Clock object
 const int chipSelect = 10;// for the GPSshield, use digital pin 10 for the SD CS line
 File logfile;// the logging file
-#define ledPin 13 //pin for GPS LED (wired for 13 on GPS shield)
-
+#define ledPin 30 //pin for GPS LED (wired for 13 on GPS shield)
 HardwareSerial gpsSerial = Serial3;
 Adafruit_GPS GPS(&Serial3);
 char *stringptr; //holds GPS NMEA string
-
 //Altimeter Stuff
 #include "MPL3115A2.h" //Alt sensor libraries
 MPL3115A2 myPressure;//Create an instance of the alt sensor
@@ -66,19 +63,35 @@ float altitude, pressure, temperature;
 /*** Defines the frequency at which the data is requested ***/
 /*** frequency f=1/T, T=period; ie. 100ms --> f=10Hz, 200ms --> f=5Hz ***/
 #define PERIOD      100 // [ms]
-
-/*** Vars for IMU ***/
+/*** Vars for IMU ***/ 
+HardwareSerial imuSerial = Serial2;
 const int NUMBER_OF_FIELDS = 6; // how many comma seperated fields we expect                                           
 float rpy[NUMBER_OF_FIELDS];    // array holding values for all the fields
-float yaw;float pitch;float roll;float rawX;float rawY;float rawZ;
-
+float yaw, pitch, roll, rawX, rawY, rawZ;
+boolean r1,r2,r3,r4,r5,r6;
+uint32_t timer1 = millis();
+//rotate led pins
+int L0 = 0; int L1 = 0; int L2 = 0; //disabled //?
+int L3 = 0; int L4 = 40; int L5 = 44; //**
+//status LED pins (red)
+int alt_status = 0; int gps_status = 0; int temp_status = 0;//**
+//TMP36 Pin Variables //?
+int tmp36 = 0; //the analog pin the TMP36's Vout (sense) pin is connected to
+int reading;   //the resolution is 10 mV / degree centigrade with a
+float voltage; //500 mV offset to allow for negative temperatures
+float temperatureF;
+#define aref_voltage 3.3 // we tie 3.3V to ARef
+//tri LED pins
+int redPin = 46; //?
+int greenPin = 48;
+int bluePin = 50;
+//kiss
 float pdata0;float pdata1;float pdata2;float pdata3;float pdata4;float pdata5;float pdata6;float pdata7;float pdata8;
 
 // this keeps track of whether we're using the interrupt
 // off by default!
 boolean usingInterrupt = false;
 void useInterrupt(boolean); // Func prototype keeps Arduino 0023 happy
-
 /************************************************************/
 /*** Setup
 /************************************************************/
@@ -89,77 +102,68 @@ void setup()
     Serial.println("RTC failed");
   }
   
-  Serial.begin(115200);  // init the Serial port to print the data to PC
+  Serial.begin(115200);  // init the Serial port to print the data to PC connect
+                         // at 115200 so we can read the GPS fast enough and
+                         // echo without dropping chars and also spit it out;
   Serial2.begin(57600); // init the Serial2 port to get data from the IMU
+  GPS.begin(9600); //init the Serial3 port to read from the GPS
   GPS_setup();
-  delay(500);
-
-  initIMU();
+  //altimeter_setup();
+  delay(500); //give the IMU time to start-up
+  Accel_setup();
   bmp_setup();
   
   logfile.println( \
-  "yaw, pitch, roll, rawX (accel), rawY, rawZ, " \
+  "yaw, pitch, roll, rawX (accel), rawY, rawZ, tmp36, " \
   "3P, 3T, 3A, 0P, 0T, 0A, " \
   "T1, T2, T3, " \
   "Time (HH:MM:SS), Date (MM/DD/YY)," \
   "GPS Fix, Fix Quality, Latitude, Longitude, " \
   "knots, altitude, # of satellite fixes");
   
-  pinMode(MAX2_PWR, OUTPUT); //power thermocouples
+  
+  pinMode(MAX2_PWR, OUTPUT);
   pinMode(MAX3_PWR, OUTPUT);
   pinMode(MAX3_GND, OUTPUT);
+  
+  // ARef set externally (for TMP36)
+  analogReference(EXTERNAL);  //?
 }
-
+void setColor(int red, int green, int blue)
+{
+  //#ifdef COMMON_ANODE
+    red = 255 - red;
+    green = 255 - green;
+    blue = 255 - blue;
+  //#endif
+  analogWrite(redPin, red);
+  analogWrite(greenPin, green);
+  analogWrite(bluePin, blue);  
+}
 /************************************************************/
 /*** Loop
 /************************************************************/
 void loop()
 {
-  Accel_loop();
   digitalWrite(MAX2_PWR, HIGH);
   digitalWrite(MAX3_PWR, HIGH);
   digitalWrite(MAX3_GND, LOW);
+  GPS_loop();
+  Accel_loop();
+  //tmp36_loop(); //in Altimeter.ino //?
+  
+  //float data[9]={0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  //float dataT[3]={0.0, 0.0, 0.0};
+  max31855_loop();
   bmp180_loop(); //I2C
   bmp183_loop(); //SPI
-  max31855_loop(); //SPI
-  GPS_loop();
-  //Serial.print("---");Serial.print(pdata0);Serial.print("----");Serial.print(pdata1);Serial.print("---");Serial.print(pdata2);Serial.print("---|");
-  //Serial.print("-");Serial.print(pdata3);Serial.print("------");Serial.print(pdata4);Serial.print("------");Serial.print(pdata5);Serial.print("---|");
-  //Serial.print("---");Serial.print(pdata6);Serial.print("-");Serial.print(pdata7);Serial.print("-");Serial.print(pdata8);
-  //Serial.println();
-  //Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
-  //Serial.print(", "); 
-  //Serial.print(GPS.longitude, 4); Serial.print(GPS.lon);
-  //Serial.print(",");
-  //Serial.print(GPS.speed);
-  //Serial.print(",");
-  //Serial.print(GPS.altitude);Serial.print(",");
-  //Serial.println((int)GPS.satellites);
-
-  Serial.println();
-  Serial.print(GPS.hour, DEC); Serial.print(':');
-  Serial.print(GPS.minute, DEC); Serial.print(':');
-  Serial.print(GPS.seconds, DEC); Serial.print('.');
-  Serial.print(GPS.milliseconds); 
-  
+  // Serial.print("---");Serial.print(data[0]);Serial.print("----");Serial.print(data[1]);Serial.print("---");Serial.print(data[2]);Serial.print("---|");
+  //  Serial.print("-");Serial.print(data[3]);Serial.print("------");Serial.print(data[4]);Serial.print("------");Serial.print(data[5]);Serial.print("---|");
+  // approximately every 0.5 second or so, print out the current stats
   if (millis() - timer1 > 100) { 
     timer1 = millis(); // reset the timer
-    DateTime now;
-    now = RTC.now();
+    
     #if ECHO_TO_SD
-      // log time
-      logfile.print(yaw);
-      logfile.print(',');
-      logfile.print(pitch);
-      logfile.print(',');
-      logfile.print(roll);
-      logfile.print(',');
-      logfile.print(rawX);
-      logfile.print(',');
-      logfile.print(rawY);
-      logfile.print(',');
-      logfile.print(rawZ);
-      logfile.print(',');
       logfile.print(pdata0);logfile.print(",");logfile.print(pdata1);logfile.print(",");logfile.print(pdata2);logfile.print(",");
       logfile.print(pdata3);logfile.print(",");logfile.print(pdata4);logfile.print(",");logfile.print(pdata5);logfile.print(",");
       logfile.print(pdata6);logfile.print(",");logfile.print(pdata7);logfile.print(",");logfile.print(pdata8);logfile.print(",");
@@ -190,6 +194,12 @@ void loop()
       }
     #endif
   }
+  
+  //status pins //?
+  //(pressure < -900) ? digitalWrite(alt_status, HIGH) : digitalWrite(alt_status, LOW);
+  //(temperatureF < -100) ? digitalWrite(temp_status, HIGH) : digitalWrite(temp_status, LOW);
 }
+
+
 
 

@@ -1,5 +1,5 @@
 
-void bmp183_loop(float *pdata)
+void bmp183_loop()
 {
   /* Display atmospheric pressue in Pascals */
     /*Serial.print("183 Pressure:    ");
@@ -8,7 +8,7 @@ void bmp183_loop(float *pdata)
     Serial.print(bmp183.getPressure() / 100);
     Serial.println(" millibar (hPa)");
     */
-    pdata[0]= bmp183.getPressure()/100;
+    pdata0 = bmp183.getPressure()/100;
     /* First we get the current temperature from the BMP085 */
     /*float temperature;
     temperature = bmp183.getTemperature();
@@ -16,7 +16,7 @@ void bmp183_loop(float *pdata)
     Serial.print(temperature);
     Serial.println(" C");
     */
-    pdata[1]= bmp183.getTemperature();
+    pdata1 = bmp183.getTemperature();
     /* Calculating altitude with reasonable accuracy requires pressure    *
      * sea level pressure for your position at the moment the data is     *
      * converted. If you don't have these values, a 'generic' value of    *
@@ -44,7 +44,7 @@ void bmp183_loop(float *pdata)
     Serial.println(" m");
     Serial.println("");
     */
-    pdata[2]= bmp183.getAltitude(seaLevelPressure);
+    pdata2= bmp183.getAltitude(seaLevelPressure);
 
   
 }
