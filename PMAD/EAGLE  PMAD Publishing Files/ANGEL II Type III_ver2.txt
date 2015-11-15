@@ -1,0 +1,36 @@
+Partlist exported from C:/Users/amrober1/Documents/Rocket U/ANGEL II Type III_ver2.sch at 10/28/2015 10:48 AM
+
+Part Value                Device               Package                      Description                                                   
+C1   0.1uF                C-USC0603            C0603                        CAPACITOR, American symbol                                    
+C2   0.1uF                C-USC0603            C0603                        CAPACITOR, American symbol                                    
+C3   100uF                C-USC1210            C1210                        CAPACITOR, American symbol                                    
+C4   10uF                 C-USC1206            C1206                        CAPACITOR, American symbol                                    
+C5   10uF                 C-USC1206            C1206                        CAPACITOR, American symbol                                    
+C6   100uF                C-USC1210            C1210                        CAPACITOR, American symbol                                    
+C7   10uF                 C-USC1206            C1206                        CAPACITOR, American symbol                                    
+C8   10uF                 C-USC1206            C1206                        CAPACITOR, American symbol                                    
+C9   10uF                 C-USC1206            C1206                        CAPACITOR, American symbol                                    
+C10  10uF                 C-USC1206            C1206                        CAPACITOR, American symbol                                    
+C11  22uF                 C-USC1210            C1210                        CAPACITOR, American symbol                                    
+D2   CGRM4007-G           CGRM4007-G           SOD-123_MINI-SMA             Molded plasitc,JEDEC SOD-123/Mini SMA                         
+DC1  R-78C9.0-1.0         R-78C9.0-1.0         SIP3                         INNOLINE DC/DC-Converter 1.0 AMP SIP3 Single Output           
+DC2  R-78C9.0-1.0         R-78C9.0-1.0         SIP3                         INNOLINE DC/DC-Converter 1.0 AMP SIP3 Single Output           
+LED1                      LEDCHIPLED_0603      CHIPLED_0603                 LED                                                           
+R1   20k 0.1%             R-US_R0603           R0603                        RESISTOR, American symbol                                     
+R2   5.23k 0.1%           R-US_R0805           R0805                        RESISTOR, American symbol                                     
+R3   0.17                 R-US_R2512           R2512                        RESISTOR, American symbol                                     
+R4   30K 0.05%            R-US_R0603           R0603                        RESISTOR, American symbol                                     
+R5   301 0.1%             R-US_R0805           R0805                        RESISTOR, American symbol                                     
+R11  2.61k                R-US_R0805           R0805                        RESISTOR, American symbol                                     
+U$1  PJ-036AH-SMT         PJ-036AH-SMT         SMT_DC_POWERJACK             Power Jack, Right Angle, PCB Surface Mount, 2.0 mm Center Pin 
+U$2  INA169               INA169               SOT23-5                                                                                    
+U$5  CUI_DCDC_5V2A        CUI_DCDC_5V2A        CUI_V200_DCDC                                                                              
+U$6  SPST_ROCKER_SW       SPST_ROCKER_SW       ROCKER_SW_SPST                                                                             
+U$7  PTH08080WAH          PTH08080WAH          PTH08080W_TH                 2.25-A, WIDE-INPUT ADJUSTABLE SWITCHING REGULATOR             
+U$9  MOLEX_2POS_HEADRE_TB MOLEX_2POS_HEADRE_TB TERM_BLK_HDR_2POS_VERT_3P5MM                                                               
+U$10 2POS_TB_3.81MM       2POS_TB_3.81MM       2POS_TB_3P81MM                                                                             
+U$11 LITTLEFUSE_1206SMT   LITTLEFUSE_1206SMT   LITTLEFUSE_SMT                                                                             
+U$12 DF13-6P-1.25H        DF13-6P-1.25H        DF13A-6P-1.25H                                                                             
+U$13 RECOM_R745_5V4A_DCDC RECOM_R745_5V4A_DCDC 12SIP_PIN                                                                                  
+X2                        87583-2010BLF        USB-A_87583-2010BLF          FCi Surface mount USB connector                               
+X4                        87583-2010BLF        USB-A_87583-2010BLF          FCi Surface mount USB connector                               
