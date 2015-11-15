@@ -9,7 +9,7 @@ from numpy import arctan, interp
 from openmdao.main.api import Assembly, Component
 from openmdao.lib.datatypes.api import Float, Bool, Str, Array
 from openmdao.lib.drivers.api import CaseIteratorDriver, BroydenSolver, NewtonSolver
-from openmdao.lib.casehandlers.api import BSONCaseRecorder, CaseDataset
+#from openmdao.lib.casehandlers.api import BSONCaseRecorder, CaseDataset
 
 
 class MotionEQ(Component):
@@ -17,13 +17,13 @@ class MotionEQ(Component):
 
     # inputs
     m = Float(100.0, units='kg', iotype='in', desc='mass of box')
-    Cd = Float(0.8, iotype='in', desc='Coefficient of Drag http://www.engineeringtoolbox.com/drag-coefficient-d_627.html')
-    A = Float(0.23, units='m**2', iotype='in', desc='cross sectional area')
+    Cd = Float(1.4, iotype='in', desc='Coefficient of Drag http://www.engineeringtoolbox.com/drag-coefficient-d_627.html')
+    A = Float(0.26, units='m**2', iotype='in', desc='cross sectional area')
     pitot_A = Float(7, iotype='in', desc='pitot tube cross area') #0.004516 m^2
 
     g = Float(9.81, units='m/s**2', iotype='in', desc='gravity')
     t_step = Float(0.01, iotype='in', desc='time step', low=0, high=0.1)
-    max_alt = Float(36576, units='m',iotype='in', desc='starting altitude')
+    max_alt = Float(32900, units='m',iotype='in', desc='starting altitude') #36576
 
     # http://www.engineeringtoolbox.com/standard-atmosphere-d_604.html
     rho_table = np.array([12.25, 11.12, 10.07,9.093,8.194,7.364,6.601,5.9,5.258, \
